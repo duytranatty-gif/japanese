@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Japanese">
+<meta name="theme-color" content="#ffb703">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Japanese for Kids</title>
+<style>
+:root{
+  --accent:#ff8a5b; --accent2:#ffb703;
+  --ink:#2b2140; --muted:#7d7597; --paper:#fff7ef; --card:#ffffff;
+  --line:#efe6dd; --ok:#3fbf7f; --no:#ff6b6b;
+  --r:28px; --shadow:0 12px 34px rgba(60,40,20,.14);
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none;}
+html,body{height:100%;margin:0;overflow:hidden;}
+body{
+  font-family:-apple-system,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  color:var(--ink);
+  background:radial-gradient(120% 120% at 50% 0%, #fff7ef 0%, #ffeede 55%, #ffe3c9 100%);
+  user-select:none; -webkit-user-select:none;
+  touch-action:manipulation;
+}
+#app{position:fixed; inset:0; padding:calc(var(--safe-t) + 8px) calc(var(--safe-r) + 14px) calc(var(--safe-b) + 8px) calc(var(--safe-l) + 14px); display:flex; flex-direction:column;}
+.screen{position:absolute; inset:0; display:flex; flex-direction:column; animation:fade .25s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes shakex{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes ring{to{stroke-dashoffset:var(--dash)}}
+@keyframes rise{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+
+.center{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; text-align:center;}
+.row{display:flex; gap:16px; align-items:center; justify-content:center; flex-wrap:wrap;}
+.kana{font-weight:800; letter-spacing:.02em;}
+.big-kana{font-size:clamp(48px,9vh,96px); font-weight:800;}
+.hint{font-size:20px; color:var(--muted); font-weight:700;}
+.hint-kana{font-size:26px; font-weight:800; color:var(--muted);}
+.gloss{font-size:28px; font-weight:800; color:var(--muted); letter-spacing:.01em;}
+.gloss.small{font-size:22px;}
+.romaji{font-size:22px; font-weight:700; color:var(--muted); opacity:.78; font-style:italic; letter-spacing:.03em; margin-top:-4px;}
+
+/* Buttons / tap targets >= 88px */
+.btn{min-height:88px; min-width:88px; border:none; border-radius:var(--r); background:var(--card);
+  box-shadow:var(--shadow); font-size:30px; font-weight:800; color:var(--ink); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 26px; transition:transform .08s;}
+.btn:active{transform:scale(.94)}
+.btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent2)); color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.08);}
+.btn.big{min-height:120px; font-size:38px; padding:20px 40px;}
+.btn.ghost{background:rgba(255,255,255,.6); box-shadow:none; border:3px solid var(--line);}
+
+/* Speaker */
+.speaker{width:150px;height:150px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));
+  color:#fff;border:none;box-shadow:var(--shadow);font-size:66px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.speaker:active{transform:scale(.93)}
+.speaker.small{width:104px;height:104px;font-size:46px;}
+.speaker.pulse::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:5px solid var(--accent);opacity:.5;animation:sonar 1.4s ease-out infinite;}
+@keyframes sonar{to{transform:scale(1.35);opacity:0}}
+
+/* Cards grid for tap games */
+.cards{display:grid; gap:18px; width:min(92vw,900px);}
+.cards.g4{grid-template-columns:repeat(2,1fr);}
+.cards.g3{grid-template-columns:repeat(3,1fr);}
+.cards.g6{grid-template-columns:repeat(3,1fr);}
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); min-height:clamp(120px,26vh,190px);
+  display:flex;align-items:center;justify-content:center;font-size:clamp(56px,13vh,104px);cursor:pointer;
+  border:5px solid transparent; transition:transform .09s, border-color .15s; position:relative; overflow:hidden;}
+.card:active{transform:scale(.95)}
+.card.correct{border-color:var(--ok); background:#eafff3; animation:pop .35s;}
+.card.wrong{border-color:var(--no); animation:shakex .4s;}
+.card.dim{opacity:.28; pointer-events:none;}
+.card.pick{border-color:var(--accent);}
+.card .lbl{position:absolute;bottom:6px;font-size:20px;color:var(--muted);font-weight:800}
+
+/* Kana tiles */
+.ktile{background:var(--card);border-radius:22px;box-shadow:var(--shadow);min-height:120px;min-width:120px;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(52px,11vh,84px);font-weight:800;cursor:pointer;border:5px solid transparent}
+.ktile:active{transform:scale(.95)}
+.ktile.correct{border-color:var(--ok);background:#eafff3;animation:pop .35s}
+.ktile.wrong{border-color:var(--no);animation:shakex .4s}
+
+/* Header inside session */
+.shead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 6px 6px;}
+.quest{width:64px;height:64px;flex:0 0 auto;}
+.mini-ava{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;background:#fff;box-shadow:var(--shadow)}
+
+/* Home */
+.home-wrap{flex:1;display:grid;grid-template-columns:1.05fr .95fr;gap:20px;min-height:0;}
+.home-left{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.home-right{display:flex;flex-direction:column;gap:14px;min-height:0;}
+.panel{background:rgba(255,255,255,.66);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;}
+.start-btn{width:min(46vw,420px);}
+.circle-quest{position:relative;width:min(40vh,320px);height:min(40vh,320px);display:flex;align-items:center;justify-content:center}
+.circle-quest .cta{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:34px;font-weight:800;color:var(--accent)}
+.circle-quest .cta .big{font-size:64px}
+
+/* Garden */
+.garden{width:100%;height:100%;border-radius:var(--r);overflow:hidden;background:linear-gradient(180deg,#bfe9ff 0%,#e7f9ff 60%,#d8f6c8 60%,#c4efac 100%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.5)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#fff;border-radius:999px;padding:8px 14px;font-weight:800;font-size:18px;box-shadow:var(--shadow);display:flex;gap:6px;align-items:center}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;background:rgba(30,20,10,.42);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;animation:fade .2s}
+.sheet{background:var(--paper);border-radius:32px;box-shadow:var(--shadow);max-width:min(94vw,780px);max-height:92vh;overflow:auto;padding:22px;width:100%}
+.celebrate{font-size:120px;animation:pop .5s}
+.toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:14px 26px;font-size:26px;font-weight:800;z-index:60;animation:rise .3s}
+
+/* Parent dashboard */
+.dash h2{margin:.2em 0}
+.dash .grid46{display:grid;grid-template-columns:repeat(12,1fr);gap:5px}
+.dash .kcell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;background:#eee;color:#bbb}
+.dash .kcell.seen{background:#ffe4c4;color:#a9702f}
+.dash .kcell.known{background:#bff0d0;color:#1f7a4d}
+.dash .bar{height:16px;border-radius:8px;background:#eee;overflow:hidden}
+.dash .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.dash table{width:100%;border-collapse:collapse}
+.dash td{padding:5px 4px;font-size:15px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dash .num{font-variant-numeric:tabular-nums;font-weight:800}
+.gear{position:absolute;top:calc(var(--safe-t) + 10px);right:calc(var(--safe-r) + 12px);width:56px;height:56px;border-radius:50%;
+  background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:var(--shadow);z-index:20;cursor:pointer;user-select:none}
+.gear .fill{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--accent) var(--p,0deg), transparent 0);opacity:.5}
+.pill{display:inline-block;background:#fff;border-radius:999px;padding:4px 12px;font-weight:800;font-size:14px;box-shadow:var(--shadow);margin:2px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:3px solid var(--line);background:#fff;border-radius:14px;padding:8px 14px;font-weight:800;font-size:16px;cursor:pointer}
+.seg button.on{border-color:var(--accent);background:#fff3ea}
+textarea{width:100%;min-height:90px;border-radius:14px;border:2px solid var(--line);padding:10px;font-family:ui-monospace,monospace;font-size:12px}
+.small{font-size:13px;color:var(--muted)}
+.sticker{width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:44px;position:relative}
+.sticker.locked{filter:grayscale(1);opacity:.35}
+.sticker small{font-size:12px;color:var(--muted);font-weight:800;position:absolute;bottom:6px}
+
+/* body figure */
+.figwrap{width:min(92vw,760px)}
+.figwrap svg{width:100%;height:auto;display:block}
+.zone{fill:transparent;cursor:pointer}
+.zone.glow{fill:rgba(255,138,91,.35);animation:bob 1.2s ease-in-out infinite}
+.zone.hit{fill:rgba(63,191,127,.45)}
+.zone.miss{fill:rgba(255,107,107,.4)}
+
+/* tiles for build-a-sentence */
+.tile{border:none;border-radius:16px;padding:14px 18px;font-size:34px;font-weight:800;box-shadow:var(--shadow);cursor:pointer;background:#fff}
+.tile.p-wa{background:#ffd6a5;color:#8a4b0d}
+.tile.p-ga{background:#a5d8ff;color:#0b4a7a}
+.tile.p-o{background:#d0bfff;color:#4b2a8a}
+.tile.p-end{background:#e9ecef;color:#495057}
+.tile.used{opacity:.3;pointer-events:none}
+.slot{min-height:60px;border-bottom:5px dashed var(--accent);min-width:90px;display:inline-flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;padding:4px 10px}
+
+/* rotate hint */
+#rotate{display:none;position:fixed;inset:0;background:var(--paper);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:30px}
+@media (orientation:portrait) and (max-height:820px){ #rotate{display:flex} }
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+.confetti i{position:absolute;top:-20px;font-size:28px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="rotate">
+  <div style="font-size:80px;animation:bob 1.4s infinite">📱↩️</div>
+  <div class="hint-kana">Turn the iPad sideways</div>
+  <div class="small">よこむきにしてね</div>
+</div>
+
+<script>
+/* ===================== CURRICULUM (embedded) ===================== */
+const DATA = {
+  "meta": {"name":"Japanese for Kids — Curriculum v1","version":"1.0"},
+  "units": [
+    {"id":"first-words","ja":"はじめのことば","en":"First Words","emoji":"🌟","order":1},
+    {"id":"animals","ja":"どうぶつ","en":"Animals","emoji":"🐾","order":2},
+    {"id":"colors","ja":"いろ","en":"Colors","emoji":"🎨","order":3},
+    {"id":"numbers","ja":"かず","en":"Numbers 1–10","emoji":"🔢","order":4},
+    {"id":"food","ja":"たべもの","en":"Food & Drink","emoji":"🍎","order":5},
+    {"id":"family","ja":"かぞく","en":"Family & People","emoji":"👨‍👩‍👧‍👦","order":6},
+    {"id":"body","ja":"からだ","en":"My Body","emoji":"🙌","order":7},
+    {"id":"things","ja":"みのまわり","en":"My Things & Home","emoji":"🎒","order":8},
+    {"id":"transport","ja":"のりもの","en":"Vehicles","emoji":"🚗","order":9},
+    {"id":"nature","ja":"しぜん","en":"Nature & Weather","emoji":"🌈","order":10},
+    {"id":"actions","ja":"うごき","en":"Action Words","emoji":"🏃","order":11},
+    {"id":"describing","ja":"ようす","en":"Describing Words","emoji":"✨","order":12},
+    {"id":"school","ja":"がっこうとあそび","en":"School & Play","emoji":"🏫","order":13},
+    {"id":"where-when","ja":"ばしょとじかん","en":"Where & When","emoji":"📍","order":14}
+  ],
+  "words": [
+    {"id":"neko","kana":"ねこ","romaji":"neko","en":"cat","emoji":"🐱","unit":"first-words","pos":"n"},
+    {"id":"inu","kana":"いぬ","romaji":"inu","en":"dog","emoji":"🐶","unit":"first-words","pos":"n"},
+    {"id":"usagi","kana":"うさぎ","romaji":"usagi","en":"rabbit","emoji":"🐰","unit":"first-words","pos":"n"},
+    {"id":"sakana","kana":"さかな","romaji":"sakana","en":"fish","emoji":"🐟","unit":"first-words","pos":"n"},
+    {"id":"tori","kana":"とり","romaji":"tori","en":"bird","emoji":"🐦","unit":"first-words","pos":"n"},
+    {"id":"sushi","kana":"すし","romaji":"sushi","en":"sushi","emoji":"🍣","unit":"first-words","pos":"n"},
+    {"id":"banana","kana":"バナナ","romaji":"banana","en":"banana","emoji":"🍌","unit":"first-words","pos":"n"},
+    {"id":"ringo","kana":"りんご","romaji":"ringo","en":"apple","emoji":"🍎","unit":"first-words","pos":"n"},
+    {"id":"kawaii","kana":"かわいい","romaji":"kawaii","en":"cute","emoji":"🥰","unit":"first-words","pos":"adj"},
+    {"id":"sugoi","kana":"すごい","romaji":"sugoi","en":"amazing","emoji":"🤩","unit":"first-words","pos":"adj"},
+    {"id":"oishii","kana":"おいしい","romaji":"oishii","en":"yummy","emoji":"😋","unit":"first-words","pos":"adj"},
+    {"id":"sensei","kana":"せんせい","romaji":"sensei","en":"teacher","emoji":"🧑‍🏫","unit":"first-words","pos":"n"},
+    {"id":"kuma","kana":"くま","romaji":"kuma","en":"bear","emoji":"🐻","unit":"animals","pos":"n"},
+    {"id":"zou","kana":"ぞう","romaji":"zou","en":"elephant","emoji":"🐘","unit":"animals","pos":"n"},
+    {"id":"kirin","kana":"きりん","romaji":"kirin","en":"giraffe","emoji":"🦒","unit":"animals","pos":"n"},
+    {"id":"saru","kana":"さる","romaji":"saru","en":"monkey","emoji":"🐵","unit":"animals","pos":"n"},
+    {"id":"buta","kana":"ぶた","romaji":"buta","en":"pig","emoji":"🐷","unit":"animals","pos":"n"},
+    {"id":"ushi","kana":"うし","romaji":"ushi","en":"cow","emoji":"🐮","unit":"animals","pos":"n"},
+    {"id":"uma","kana":"うま","romaji":"uma","en":"horse","emoji":"🐴","unit":"animals","pos":"n"},
+    {"id":"hitsuji","kana":"ひつじ","romaji":"hitsuji","en":"sheep","emoji":"🐑","unit":"animals","pos":"n"},
+    {"id":"raion","kana":"ライオン","romaji":"raion","en":"lion","emoji":"🦁","unit":"animals","pos":"n"},
+    {"id":"panda","kana":"パンダ","romaji":"panda","en":"panda","emoji":"🐼","unit":"animals","pos":"n"},
+    {"id":"kaeru","kana":"かえる","romaji":"kaeru","en":"frog","emoji":"🐸","unit":"animals","pos":"n"},
+    {"id":"hebi","kana":"へび","romaji":"hebi","en":"snake","emoji":"🐍","unit":"animals","pos":"n"},
+    {"id":"chouchou","kana":"ちょうちょ","romaji":"chouchou","en":"butterfly","emoji":"🦋","unit":"animals","pos":"n"},
+    {"id":"ari","kana":"あり","romaji":"ari","en":"ant","emoji":"🐜","unit":"animals","pos":"n"},
+    {"id":"mitsubachi","kana":"みつばち","romaji":"mitsubachi","en":"bee","emoji":"🐝","unit":"animals","pos":"n"},
+    {"id":"kame","kana":"かめ","romaji":"kame","en":"turtle","emoji":"🐢","unit":"animals","pos":"n"},
+    {"id":"nezumi","kana":"ねずみ","romaji":"nezumi","en":"mouse","emoji":"🐭","unit":"animals","pos":"n"},
+    {"id":"kitsune","kana":"きつね","romaji":"kitsune","en":"fox","emoji":"🦊","unit":"animals","pos":"n"},
+    {"id":"shika","kana":"しか","romaji":"shika","en":"deer","emoji":"🦌","unit":"animals","pos":"n"},
+    {"id":"tora","kana":"とら","romaji":"tora","en":"tiger","emoji":"🐯","unit":"animals","pos":"n"},
+    {"id":"pengin","kana":"ペンギン","romaji":"pengin","en":"penguin","emoji":"🐧","unit":"animals","pos":"n"},
+    {"id":"iruka","kana":"いるか","romaji":"iruka","en":"dolphin","emoji":"🐬","unit":"animals","pos":"n"},
+    {"id":"kujira","kana":"くじら","romaji":"kujira","en":"whale","emoji":"🐳","unit":"animals","pos":"n"},
+    {"id":"tako","kana":"たこ","romaji":"tako","en":"octopus","emoji":"🐙","unit":"animals","pos":"n"},
+    {"id":"kani","kana":"かに","romaji":"kani","en":"crab","emoji":"🦀","unit":"animals","pos":"n"},
+    {"id":"hiyoko","kana":"ひよこ","romaji":"hiyoko","en":"chick","emoji":"🐤","unit":"animals","pos":"n"},
+    {"id":"mushi","kana":"むし","romaji":"mushi","en":"bug","emoji":"🐛","unit":"animals","pos":"n"},
+    {"id":"katatsumuri","kana":"かたつむり","romaji":"katatsumuri","en":"snail","emoji":"🐌","unit":"animals","pos":"n"},
+    {"id":"aka","kana":"あか","romaji":"aka","en":"red","emoji":"🔴","unit":"colors","pos":"n","iForm":"あかい"},
+    {"id":"ao","kana":"あお","romaji":"ao","en":"blue","emoji":"🔵","unit":"colors","pos":"n","iForm":"あおい"},
+    {"id":"kiiro","kana":"きいろ","romaji":"kiiro","en":"yellow","emoji":"🟡","unit":"colors","pos":"n","iForm":"きいろい"},
+    {"id":"midori","kana":"みどり","romaji":"midori","en":"green","emoji":"🟢","unit":"colors","pos":"n"},
+    {"id":"shiro","kana":"しろ","romaji":"shiro","en":"white","emoji":"⚪","unit":"colors","pos":"n","iForm":"しろい"},
+    {"id":"kuro","kana":"くろ","romaji":"kuro","en":"black","emoji":"⚫","unit":"colors","pos":"n","iForm":"くろい"},
+    {"id":"pinku","kana":"ピンク","romaji":"pinku","en":"pink","emoji":"🩷","unit":"colors","pos":"n"},
+    {"id":"orenji","kana":"オレンジ","romaji":"orenji","en":"orange (color)","emoji":"🟠","unit":"colors","pos":"n"},
+    {"id":"murasaki","kana":"むらさき","romaji":"murasaki","en":"purple","emoji":"🟣","unit":"colors","pos":"n"},
+    {"id":"chairo","kana":"ちゃいろ","romaji":"chairo","en":"brown","emoji":"🟤","unit":"colors","pos":"n","iForm":"ちゃいろい"},
+    {"id":"ichi","kana":"いち","romaji":"ichi","en":"one","emoji":"1️⃣","unit":"numbers","pos":"num"},
+    {"id":"ni","kana":"に","romaji":"ni","en":"two","emoji":"2️⃣","unit":"numbers","pos":"num"},
+    {"id":"san","kana":"さん","romaji":"san","en":"three","emoji":"3️⃣","unit":"numbers","pos":"num"},
+    {"id":"yon","kana":"よん","romaji":"yon","en":"four","emoji":"4️⃣","unit":"numbers","pos":"num"},
+    {"id":"go","kana":"ご","romaji":"go","en":"five","emoji":"5️⃣","unit":"numbers","pos":"num"},
+    {"id":"roku","kana":"ろく","romaji":"roku","en":"six","emoji":"6️⃣","unit":"numbers","pos":"num"},
+    {"id":"nana","kana":"なな","romaji":"nana","en":"seven","emoji":"7️⃣","unit":"numbers","pos":"num"},
+    {"id":"hachi","kana":"はち","romaji":"hachi","en":"eight","emoji":"8️⃣","unit":"numbers","pos":"num"},
+    {"id":"kyuu","kana":"きゅう","romaji":"kyuu","en":"nine","emoji":"9️⃣","unit":"numbers","pos":"num"},
+    {"id":"juu","kana":"じゅう","romaji":"juu","en":"ten","emoji":"🔟","unit":"numbers","pos":"num"},
+    {"id":"gohan","kana":"ごはん","romaji":"gohan","en":"rice / meal","emoji":"🍚","unit":"food","pos":"n"},
+    {"id":"pan","kana":"パン","romaji":"pan","en":"bread","emoji":"🍞","unit":"food","pos":"n"},
+    {"id":"tamago","kana":"たまご","romaji":"tamago","en":"egg","emoji":"🥚","unit":"food","pos":"n"},
+    {"id":"mikan","kana":"みかん","romaji":"mikan","en":"mandarin orange","emoji":"🍊","unit":"food","pos":"n"},
+    {"id":"ichigo","kana":"いちご","romaji":"ichigo","en":"strawberry","emoji":"🍓","unit":"food","pos":"n"},
+    {"id":"budou","kana":"ぶどう","romaji":"budou","en":"grapes","emoji":"🍇","unit":"food","pos":"n"},
+    {"id":"suika","kana":"すいか","romaji":"suika","en":"watermelon","emoji":"🍉","unit":"food","pos":"n"},
+    {"id":"momo","kana":"もも","romaji":"momo","en":"peach","emoji":"🍑","unit":"food","pos":"n"},
+    {"id":"mizu","kana":"みず","romaji":"mizu","en":"water","emoji":"💧","unit":"food","pos":"n"},
+    {"id":"gyuunyuu","kana":"ぎゅうにゅう","romaji":"gyuunyuu","en":"milk","emoji":"🥛","unit":"food","pos":"n"},
+    {"id":"ocha","kana":"おちゃ","romaji":"ocha","en":"tea","emoji":"🍵","unit":"food","pos":"n"},
+    {"id":"juusu","kana":"ジュース","romaji":"juusu","en":"juice","emoji":"🧃","unit":"food","pos":"n"},
+    {"id":"onigiri","kana":"おにぎり","romaji":"onigiri","en":"rice ball","emoji":"🍙","unit":"food","pos":"n"},
+    {"id":"raamen","kana":"ラーメン","romaji":"raamen","en":"ramen","emoji":"🍜","unit":"food","pos":"n"},
+    {"id":"udon","kana":"うどん","romaji":"udon","en":"udon noodles","emoji":"🍲","unit":"food","pos":"n"},
+    {"id":"misoshiru","kana":"みそしる","romaji":"misoshiru","en":"miso soup","emoji":"🥣","unit":"food","pos":"n"},
+    {"id":"karee","kana":"カレー","romaji":"karee","en":"curry","emoji":"🍛","unit":"food","pos":"n"},
+    {"id":"keeki","kana":"ケーキ","romaji":"keeki","en":"cake","emoji":"🍰","unit":"food","pos":"n"},
+    {"id":"aisu","kana":"アイス","romaji":"aisu","en":"ice cream","emoji":"🍦","unit":"food","pos":"n"},
+    {"id":"ame-candy","kana":"あめ","romaji":"ame","en":"candy","emoji":"🍬","unit":"food","pos":"n"},
+    {"id":"choko","kana":"チョコ","romaji":"choko","en":"chocolate","emoji":"🍫","unit":"food","pos":"n"},
+    {"id":"kukkii","kana":"クッキー","romaji":"kukkii","en":"cookie","emoji":"🍪","unit":"food","pos":"n"},
+    {"id":"piza","kana":"ピザ","romaji":"piza","en":"pizza","emoji":"🍕","unit":"food","pos":"n"},
+    {"id":"yasai","kana":"やさい","romaji":"yasai","en":"vegetables","emoji":"🥦","unit":"food","pos":"n"},
+    {"id":"kudamono","kana":"くだもの","romaji":"kudamono","en":"fruit","emoji":"🍎🍇","unit":"food","pos":"n"},
+    {"id":"ninjin","kana":"にんじん","romaji":"ninjin","en":"carrot","emoji":"🥕","unit":"food","pos":"n"},
+    {"id":"jagaimo","kana":"じゃがいも","romaji":"jagaimo","en":"potato","emoji":"🥔","unit":"food","pos":"n"},
+    {"id":"tomato","kana":"トマト","romaji":"tomato","en":"tomato","emoji":"🍅","unit":"food","pos":"n"},
+    {"id":"toumorokoshi","kana":"とうもろこし","romaji":"toumorokoshi","en":"corn","emoji":"🌽","unit":"food","pos":"n"},
+    {"id":"supuun","kana":"スプーン","romaji":"supuun","en":"spoon","emoji":"🥄","unit":"food","pos":"n"},
+    {"id":"fooku","kana":"フォーク","romaji":"fooku","en":"fork","emoji":"🍴","unit":"food","pos":"n"},
+    {"id":"ohashi","kana":"おはし","romaji":"ohashi","en":"chopsticks","emoji":"🥢","unit":"food","pos":"n"},
+    {"id":"koppu","kana":"コップ","romaji":"koppu","en":"cup","emoji":"🥤","unit":"food","pos":"n"},
+    {"id":"osara","kana":"おさら","romaji":"osara","en":"plate","emoji":"🍽️","unit":"food","pos":"n"},
+    {"id":"okaasan","kana":"おかあさん","romaji":"okaasan","en":"mom","emoji":"👩","unit":"family","pos":"n"},
+    {"id":"otousan","kana":"おとうさん","romaji":"otousan","en":"dad","emoji":"👨","unit":"family","pos":"n"},
+    {"id":"obaachan","kana":"おばあちゃん","romaji":"obaachan","en":"grandma","emoji":"👵","unit":"family","pos":"n"},
+    {"id":"ojiichan","kana":"おじいちゃん","romaji":"ojiichan","en":"grandpa","emoji":"👴","unit":"family","pos":"n"},
+    {"id":"oniichan","kana":"おにいちゃん","romaji":"oniichan","en":"big brother","emoji":"👦","unit":"family","pos":"n"},
+    {"id":"oneechan","kana":"おねえちゃん","romaji":"oneechan","en":"big sister","emoji":"💁‍♀️","unit":"family","pos":"n"},
+    {"id":"otouto","kana":"おとうと","romaji":"otouto","en":"little brother","emoji":"🧒","unit":"family","pos":"n"},
+    {"id":"imouto","kana":"いもうと","romaji":"imouto","en":"little sister","emoji":"👧","unit":"family","pos":"n"},
+    {"id":"akachan","kana":"あかちゃん","romaji":"akachan","en":"baby","emoji":"👶","unit":"family","pos":"n"},
+    {"id":"tomodachi","kana":"ともだち","romaji":"tomodachi","en":"friend","emoji":"👫","unit":"family","pos":"n"},
+    {"id":"watashi","kana":"わたし","romaji":"watashi","en":"I / me","emoji":"🙋‍♀️","unit":"family","pos":"pron"},
+    {"id":"boku","kana":"ぼく","romaji":"boku","en":"I / me (boys)","emoji":"🙋‍♂️","unit":"family","pos":"pron"},
+    {"id":"atama","kana":"あたま","romaji":"atama","en":"head","emoji":"👤","unit":"body","pos":"n","note":"use body-figure game"},
+    {"id":"kao","kana":"かお","romaji":"kao","en":"face","emoji":"😊","unit":"body","pos":"n"},
+    {"id":"me","kana":"め","romaji":"me","en":"eye","emoji":"👁️","unit":"body","pos":"n"},
+    {"id":"mimi","kana":"みみ","romaji":"mimi","en":"ear","emoji":"👂","unit":"body","pos":"n"},
+    {"id":"hana-nose","kana":"はな","romaji":"hana","en":"nose","emoji":"👃","unit":"body","pos":"n"},
+    {"id":"kuchi","kana":"くち","romaji":"kuchi","en":"mouth","emoji":"👄","unit":"body","pos":"n"},
+    {"id":"ha","kana":"は","romaji":"ha","en":"tooth","emoji":"🦷","unit":"body","pos":"n"},
+    {"id":"te","kana":"て","romaji":"te","en":"hand","emoji":"✋","unit":"body","pos":"n"},
+    {"id":"yubi","kana":"ゆび","romaji":"yubi","en":"finger","emoji":"☝️","unit":"body","pos":"n"},
+    {"id":"ashi","kana":"あし","romaji":"ashi","en":"leg / foot","emoji":"🦵","unit":"body","pos":"n"},
+    {"id":"hiza","kana":"ひざ","romaji":"hiza","en":"knee","emoji":"🧎","unit":"body","pos":"n"},
+    {"id":"onaka","kana":"おなか","romaji":"onaka","en":"tummy","emoji":"⭕","unit":"body","pos":"n","note":"use body-figure game"},
+    {"id":"senaka","kana":"せなか","romaji":"senaka","en":"back","emoji":"🔙","unit":"body","pos":"n","note":"use body-figure game"},
+    {"id":"kaminoke","kana":"かみのけ","romaji":"kaminoke","en":"hair","emoji":"💇","unit":"body","pos":"n"},
+    {"id":"ie","kana":"いえ","romaji":"ie","en":"house","emoji":"🏠","unit":"things","pos":"n"},
+    {"id":"heya","kana":"へや","romaji":"heya","en":"room","emoji":"🛋️","unit":"things","pos":"n"},
+    {"id":"doa","kana":"ドア","romaji":"doa","en":"door","emoji":"🚪","unit":"things","pos":"n"},
+    {"id":"mado","kana":"まど","romaji":"mado","en":"window","emoji":"🪟","unit":"things","pos":"n"},
+    {"id":"tsukue","kana":"つくえ","romaji":"tsukue","en":"desk","emoji":"🖥️","unit":"things","pos":"n","note":"no desk emoji — SVG later"},
+    {"id":"isu","kana":"いす","romaji":"isu","en":"chair","emoji":"🪑","unit":"things","pos":"n"},
+    {"id":"beddo","kana":"ベッド","romaji":"beddo","en":"bed","emoji":"🛏️","unit":"things","pos":"n"},
+    {"id":"hon","kana":"ほん","romaji":"hon","en":"book","emoji":"📖","unit":"things","pos":"n"},
+    {"id":"kaban","kana":"かばん","romaji":"kaban","en":"bag","emoji":"🎒","unit":"things","pos":"n"},
+    {"id":"kutsu","kana":"くつ","romaji":"kutsu","en":"shoes","emoji":"👟","unit":"things","pos":"n"},
+    {"id":"kutsushita","kana":"くつした","romaji":"kutsushita","en":"socks","emoji":"🧦","unit":"things","pos":"n"},
+    {"id":"boushi","kana":"ぼうし","romaji":"boushi","en":"hat","emoji":"🧢","unit":"things","pos":"n"},
+    {"id":"fuku","kana":"ふく","romaji":"fuku","en":"clothes","emoji":"👕","unit":"things","pos":"n"},
+    {"id":"shatsu","kana":"シャツ","romaji":"shatsu","en":"shirt","emoji":"👔","unit":"things","pos":"n"},
+    {"id":"zubon","kana":"ズボン","romaji":"zubon","en":"pants","emoji":"👖","unit":"things","pos":"n"},
+    {"id":"omocha","kana":"おもちゃ","romaji":"omocha","en":"toy","emoji":"🧸","unit":"things","pos":"n"},
+    {"id":"booru","kana":"ボール","romaji":"booru","en":"ball","emoji":"⚽","unit":"things","pos":"n"},
+    {"id":"ningyou","kana":"にんぎょう","romaji":"ningyou","en":"doll","emoji":"🪆","unit":"things","pos":"n"},
+    {"id":"burokku","kana":"ブロック","romaji":"burokku","en":"blocks","emoji":"🧱","unit":"things","pos":"n"},
+    {"id":"terebi","kana":"テレビ","romaji":"terebi","en":"TV","emoji":"📺","unit":"things","pos":"n"},
+    {"id":"denwa","kana":"でんわ","romaji":"denwa","en":"phone","emoji":"📱","unit":"things","pos":"n"},
+    {"id":"tokei","kana":"とけい","romaji":"tokei","en":"clock","emoji":"⏰","unit":"things","pos":"n"},
+    {"id":"kasa","kana":"かさ","romaji":"kasa","en":"umbrella","emoji":"☂️","unit":"things","pos":"n"},
+    {"id":"kagi","kana":"かぎ","romaji":"kagi","en":"key","emoji":"🔑","unit":"things","pos":"n"},
+    {"id":"taoru","kana":"タオル","romaji":"taoru","en":"towel","emoji":"🧺","unit":"things","pos":"n","note":"approx emoji"},
+    {"id":"sekken","kana":"せっけん","romaji":"sekken","en":"soap","emoji":"🧼","unit":"things","pos":"n"},
+    {"id":"haburashi","kana":"はぶらし","romaji":"haburashi","en":"toothbrush","emoji":"🪥","unit":"things","pos":"n"},
+    {"id":"ofuro","kana":"おふろ","romaji":"ofuro","en":"bath","emoji":"🛁","unit":"things","pos":"n"},
+    {"id":"toire","kana":"トイレ","romaji":"toire","en":"toilet","emoji":"🚽","unit":"things","pos":"n"},
+    {"id":"niwa","kana":"にわ","romaji":"niwa","en":"garden","emoji":"🪴","unit":"things","pos":"n"},
+    {"id":"daidokoro","kana":"だいどころ","romaji":"daidokoro","en":"kitchen","emoji":"🍳","unit":"things","pos":"n"},
+    {"id":"kuruma","kana":"くるま","romaji":"kuruma","en":"car","emoji":"🚗","unit":"transport","pos":"n"},
+    {"id":"densha","kana":"でんしゃ","romaji":"densha","en":"train","emoji":"🚃","unit":"transport","pos":"n"},
+    {"id":"hikouki","kana":"ひこうき","romaji":"hikouki","en":"airplane","emoji":"✈️","unit":"transport","pos":"n"},
+    {"id":"jitensha","kana":"じてんしゃ","romaji":"jitensha","en":"bicycle","emoji":"🚲","unit":"transport","pos":"n"},
+    {"id":"basu","kana":"バス","romaji":"basu","en":"bus","emoji":"🚌","unit":"transport","pos":"n"},
+    {"id":"fune","kana":"ふね","romaji":"fune","en":"boat","emoji":"⛵","unit":"transport","pos":"n"},
+    {"id":"shoubousha","kana":"しょうぼうしゃ","romaji":"shoubousha","en":"fire truck","emoji":"🚒","unit":"transport","pos":"n"},
+    {"id":"patokaa","kana":"パトカー","romaji":"patokaa","en":"police car","emoji":"🚓","unit":"transport","pos":"n"},
+    {"id":"roketto","kana":"ロケット","romaji":"roketto","en":"rocket","emoji":"🚀","unit":"transport","pos":"n"},
+    {"id":"herikoputaa","kana":"ヘリコプター","romaji":"herikoputaa","en":"helicopter","emoji":"🚁","unit":"transport","pos":"n"},
+    {"id":"sora","kana":"そら","romaji":"sora","en":"sky","emoji":"🌥️","unit":"nature","pos":"n"},
+    {"id":"taiyou","kana":"たいよう","romaji":"taiyou","en":"sun","emoji":"☀️","unit":"nature","pos":"n"},
+    {"id":"tsuki","kana":"つき","romaji":"tsuki","en":"moon","emoji":"🌙","unit":"nature","pos":"n"},
+    {"id":"hoshi","kana":"ほし","romaji":"hoshi","en":"star","emoji":"⭐","unit":"nature","pos":"n"},
+    {"id":"ame-rain","kana":"あめ","romaji":"ame","en":"rain","emoji":"🌧️","unit":"nature","pos":"n"},
+    {"id":"yuki","kana":"ゆき","romaji":"yuki","en":"snow","emoji":"❄️","unit":"nature","pos":"n"},
+    {"id":"kaze","kana":"かぜ","romaji":"kaze","en":"wind","emoji":"💨","unit":"nature","pos":"n"},
+    {"id":"kumo","kana":"くも","romaji":"kumo","en":"cloud","emoji":"☁️","unit":"nature","pos":"n"},
+    {"id":"niji","kana":"にじ","romaji":"niji","en":"rainbow","emoji":"🌈","unit":"nature","pos":"n"},
+    {"id":"yama","kana":"やま","romaji":"yama","en":"mountain","emoji":"⛰️","unit":"nature","pos":"n"},
+    {"id":"umi","kana":"うみ","romaji":"umi","en":"sea","emoji":"🌊","unit":"nature","pos":"n"},
+    {"id":"kawa","kana":"かわ","romaji":"kawa","en":"river","emoji":"🏞️","unit":"nature","pos":"n"},
+    {"id":"ki","kana":"き","romaji":"ki","en":"tree","emoji":"🌳","unit":"nature","pos":"n"},
+    {"id":"hana-flower","kana":"はな","romaji":"hana","en":"flower","emoji":"🌸","unit":"nature","pos":"n"},
+    {"id":"happa","kana":"はっぱ","romaji":"happa","en":"leaf","emoji":"🍃","unit":"nature","pos":"n"},
+    {"id":"ishi","kana":"いし","romaji":"ishi","en":"stone","emoji":"🪨","unit":"nature","pos":"n"},
+    {"id":"suna","kana":"すな","romaji":"suna","en":"sand","emoji":"🏜️","unit":"nature","pos":"n"},
+    {"id":"taberu","kana":"たべる","romaji":"taberu","en":"to eat","emoji":"😋","unit":"actions","pos":"v"},
+    {"id":"nomu","kana":"のむ","romaji":"nomu","en":"to drink","emoji":"🥤","unit":"actions","pos":"v"},
+    {"id":"miru","kana":"みる","romaji":"miru","en":"to look / watch","emoji":"👀","unit":"actions","pos":"v"},
+    {"id":"kiku","kana":"きく","romaji":"kiku","en":"to listen","emoji":"🎧","unit":"actions","pos":"v"},
+    {"id":"iu","kana":"いう","romaji":"iu","en":"to say","emoji":"💬","unit":"actions","pos":"v"},
+    {"id":"iku","kana":"いく","romaji":"iku","en":"to go","emoji":"➡️","unit":"actions","pos":"v"},
+    {"id":"kuru","kana":"くる","romaji":"kuru","en":"to come","emoji":"⬅️","unit":"actions","pos":"v"},
+    {"id":"kaeru-gohome","kana":"かえる","romaji":"kaeru","en":"to go home","emoji":"🚶🏠","unit":"actions","pos":"v"},
+    {"id":"neru","kana":"ねる","romaji":"neru","en":"to sleep","emoji":"😴","unit":"actions","pos":"v"},
+    {"id":"okiru","kana":"おきる","romaji":"okiru","en":"to wake up","emoji":"🌞","unit":"actions","pos":"v"},
+    {"id":"asobu","kana":"あそぶ","romaji":"asobu","en":"to play","emoji":"🪁","unit":"actions","pos":"v"},
+    {"id":"hashiru","kana":"はしる","romaji":"hashiru","en":"to run","emoji":"🏃","unit":"actions","pos":"v"},
+    {"id":"aruku","kana":"あるく","romaji":"aruku","en":"to walk","emoji":"🚶","unit":"actions","pos":"v"},
+    {"id":"suwaru","kana":"すわる","romaji":"suwaru","en":"to sit","emoji":"🧘","unit":"actions","pos":"v"},
+    {"id":"tatsu","kana":"たつ","romaji":"tatsu","en":"to stand","emoji":"🧍","unit":"actions","pos":"v"},
+    {"id":"tobu","kana":"とぶ","romaji":"tobu","en":"to jump / fly","emoji":"🦘","unit":"actions","pos":"v"},
+    {"id":"oyogu","kana":"およぐ","romaji":"oyogu","en":"to swim","emoji":"🏊","unit":"actions","pos":"v"},
+    {"id":"utau","kana":"うたう","romaji":"utau","en":"to sing","emoji":"🎤","unit":"actions","pos":"v"},
+    {"id":"odoru","kana":"おどる","romaji":"odoru","en":"to dance","emoji":"💃","unit":"actions","pos":"v"},
+    {"id":"kaku","kana":"かく","romaji":"kaku","en":"to draw / write","emoji":"🎨","unit":"actions","pos":"v"},
+    {"id":"yomu","kana":"よむ","romaji":"yomu","en":"to read","emoji":"📚","unit":"actions","pos":"v"},
+    {"id":"tsukuru","kana":"つくる","romaji":"tsukuru","en":"to make","emoji":"🛠️","unit":"actions","pos":"v"},
+    {"id":"arau","kana":"あらう","romaji":"arau","en":"to wash","emoji":"🚿","unit":"actions","pos":"v"},
+    {"id":"motsu","kana":"もつ","romaji":"motsu","en":"to hold","emoji":"🤲","unit":"actions","pos":"v"},
+    {"id":"nageru","kana":"なげる","romaji":"nageru","en":"to throw","emoji":"🤾","unit":"actions","pos":"v"},
+    {"id":"keru","kana":"ける","romaji":"keru","en":"to kick","emoji":"🦶⚽","unit":"actions","pos":"v"},
+    {"id":"warau","kana":"わらう","romaji":"warau","en":"to laugh","emoji":"😂","unit":"actions","pos":"v"},
+    {"id":"naku","kana":"なく","romaji":"naku","en":"to cry","emoji":"😢","unit":"actions","pos":"v"},
+    {"id":"ookii","kana":"おおきい","romaji":"ookii","en":"big","emoji":"🐘","unit":"describing","pos":"adj"},
+    {"id":"chiisai","kana":"ちいさい","romaji":"chiisai","en":"small","emoji":"🐭","unit":"describing","pos":"adj"},
+    {"id":"hayai","kana":"はやい","romaji":"hayai","en":"fast","emoji":"🏎️","unit":"describing","pos":"adj"},
+    {"id":"osoi","kana":"おそい","romaji":"osoi","en":"slow","emoji":"🐌","unit":"describing","pos":"adj"},
+    {"id":"atsui","kana":"あつい","romaji":"atsui","en":"hot","emoji":"🥵","unit":"describing","pos":"adj"},
+    {"id":"samui","kana":"さむい","romaji":"samui","en":"cold (weather)","emoji":"🥶","unit":"describing","pos":"adj"},
+    {"id":"tsumetai","kana":"つめたい","romaji":"tsumetai","en":"cold (to touch)","emoji":"🧊","unit":"describing","pos":"adj"},
+    {"id":"takai","kana":"たかい","romaji":"takai","en":"tall / high","emoji":"🗼","unit":"describing","pos":"adj"},
+    {"id":"hikui","kana":"ひくい","romaji":"hikui","en":"low","emoji":"⬇️","unit":"describing","pos":"adj"},
+    {"id":"nagai","kana":"ながい","romaji":"nagai","en":"long","emoji":"📏","unit":"describing","pos":"adj"},
+    {"id":"mijikai","kana":"みじかい","romaji":"mijikai","en":"short","emoji":"🩳","unit":"describing","pos":"adj"},
+    {"id":"atarashii","kana":"あたらしい","romaji":"atarashii","en":"new","emoji":"✨","unit":"describing","pos":"adj"},
+    {"id":"furui","kana":"ふるい","romaji":"furui","en":"old (things)","emoji":"🏚️","unit":"describing","pos":"adj"},
+    {"id":"tanoshii","kana":"たのしい","romaji":"tanoshii","en":"fun","emoji":"🎉","unit":"describing","pos":"adj"},
+    {"id":"ureshii","kana":"うれしい","romaji":"ureshii","en":"happy","emoji":"😄","unit":"describing","pos":"adj"},
+    {"id":"kanashii","kana":"かなしい","romaji":"kanashii","en":"sad","emoji":"😭","unit":"describing","pos":"adj"},
+    {"id":"kowai","kana":"こわい","romaji":"kowai","en":"scary","emoji":"👻","unit":"describing","pos":"adj"},
+    {"id":"nemui","kana":"ねむい","romaji":"nemui","en":"sleepy","emoji":"🥱","unit":"describing","pos":"adj"},
+    {"id":"ii","kana":"いい","romaji":"ii","en":"good","emoji":"👍","unit":"describing","pos":"adj"},
+    {"id":"warui","kana":"わるい","romaji":"warui","en":"bad","emoji":"👎","unit":"describing","pos":"adj"},
+    {"id":"kirei","kana":"きれい","romaji":"kirei","en":"pretty / clean","emoji":"💎","unit":"describing","pos":"adj"},
+    {"id":"kitanai","kana":"きたない","romaji":"kitanai","en":"dirty","emoji":"💩","unit":"describing","pos":"adj"},
+    {"id":"omoi","kana":"おもい","romaji":"omoi","en":"heavy","emoji":"🏋️","unit":"describing","pos":"adj"},
+    {"id":"karui","kana":"かるい","romaji":"karui","en":"light (weight)","emoji":"🪶","unit":"describing","pos":"adj"},
+    {"id":"gakkou","kana":"がっこう","romaji":"gakkou","en":"school","emoji":"🏫","unit":"school","pos":"n"},
+    {"id":"enpitsu","kana":"えんぴつ","romaji":"enpitsu","en":"pencil","emoji":"✏️","unit":"school","pos":"n"},
+    {"id":"kureyon","kana":"クレヨン","romaji":"kureyon","en":"crayon","emoji":"🖍️","unit":"school","pos":"n"},
+    {"id":"kami-paper","kana":"かみ","romaji":"kami","en":"paper","emoji":"📄","unit":"school","pos":"n"},
+    {"id":"hasami","kana":"はさみ","romaji":"hasami","en":"scissors","emoji":"✂️","unit":"school","pos":"n"},
+    {"id":"nori-glue","kana":"のり","romaji":"nori","en":"glue","emoji":"🧴","unit":"school","pos":"n","note":"approx emoji"},
+    {"id":"e","kana":"え","romaji":"e","en":"picture / drawing","emoji":"🖼️","unit":"school","pos":"n"},
+    {"id":"ehon","kana":"えほん","romaji":"ehon","en":"picture book","emoji":"📕","unit":"school","pos":"n"},
+    {"id":"uta","kana":"うた","romaji":"uta","en":"song","emoji":"🎵","unit":"school","pos":"n"},
+    {"id":"dansu","kana":"ダンス","romaji":"dansu","en":"dance","emoji":"🕺","unit":"school","pos":"n"},
+    {"id":"geemu","kana":"ゲーム","romaji":"geemu","en":"game","emoji":"🎮","unit":"school","pos":"n"},
+    {"id":"kouen","kana":"こうえん","romaji":"kouen","en":"park","emoji":"⛲","unit":"school","pos":"n"},
+    {"id":"buranko","kana":"ぶらんこ","romaji":"buranko","en":"swing","emoji":"🎠","unit":"school","pos":"n","note":"approx emoji — SVG later"},
+    {"id":"suberidai","kana":"すべりだい","romaji":"suberidai","en":"slide","emoji":"🛝","unit":"school","pos":"n"},
+    {"id":"ue","kana":"うえ","romaji":"ue","en":"up / on top","emoji":"⬆️","unit":"where-when","pos":"n"},
+    {"id":"shita","kana":"した","romaji":"shita","en":"down / under","emoji":"⬇️","unit":"where-when","pos":"n"},
+    {"id":"naka","kana":"なか","romaji":"naka","en":"inside","emoji":"📦","unit":"where-when","pos":"n"},
+    {"id":"soto","kana":"そと","romaji":"soto","en":"outside","emoji":"🏕️","unit":"where-when","pos":"n"},
+    {"id":"mae","kana":"まえ","romaji":"mae","en":"front","emoji":"🚶➡️","unit":"where-when","pos":"n"},
+    {"id":"ushiro","kana":"うしろ","romaji":"ushiro","en":"behind","emoji":"🔙","unit":"where-when","pos":"n"},
+    {"id":"migi","kana":"みぎ","romaji":"migi","en":"right","emoji":"👉","unit":"where-when","pos":"n"},
+    {"id":"hidari","kana":"ひだり","romaji":"hidari","en":"left","emoji":"👈","unit":"where-when","pos":"n"},
+    {"id":"asa","kana":"あさ","romaji":"asa","en":"morning","emoji":"🌅","unit":"where-when","pos":"n"},
+    {"id":"hiru","kana":"ひる","romaji":"hiru","en":"daytime / noon","emoji":"🕛","unit":"where-when","pos":"n"},
+    {"id":"yoru","kana":"よる","romaji":"yoru","en":"night","emoji":"🌃","unit":"where-when","pos":"n"},
+    {"id":"kyou","kana":"きょう","romaji":"kyou","en":"today","emoji":"📅","unit":"where-when","pos":"n"},
+    {"id":"ashita","kana":"あした","romaji":"ashita","en":"tomorrow","emoji":"📆","unit":"where-when","pos":"n"},
+    {"id":"kinou","kana":"きのう","romaji":"kinou","en":"yesterday","emoji":"🗓️","unit":"where-when","pos":"n"}
+  ],
+  "phrases": [
+    {"id":"ohayou","kana":"おはよう","romaji":"ohayou","en":"good morning","emoji":"🌅","when":"waking up / morning","week":1},
+    {"id":"konnichiwa","kana":"こんにちは","romaji":"konnichiwa","en":"hello","emoji":"👋","when":"daytime greeting","week":1},
+    {"id":"arigatou","kana":"ありがとう","romaji":"arigatou","en":"thank you","emoji":"🙏","when":"receiving anything","week":1},
+    {"id":"itadakimasu","kana":"いただきます","romaji":"itadakimasu","en":"let's eat! (before meals)","emoji":"🍽️","when":"before eating","week":1},
+    {"id":"oyasumi","kana":"おやすみなさい","romaji":"oyasuminasai","en":"good night","emoji":"😴","when":"bedtime","week":1},
+    {"id":"baibai","kana":"バイバイ","romaji":"baibai","en":"bye-bye","emoji":"👋😊","when":"casual goodbye","week":1},
+    {"id":"hai","kana":"はい","romaji":"hai","en":"yes","emoji":"⭕","when":"answering","week":1},
+    {"id":"iie","kana":"いいえ","romaji":"iie","en":"no","emoji":"❌","when":"answering","week":1},
+    {"id":"gochisousama","kana":"ごちそうさま","romaji":"gochisousama","en":"thanks for the meal (after)","emoji":"😋🙏","when":"after eating","week":2},
+    {"id":"gomennasai","kana":"ごめんなさい","romaji":"gomennasai","en":"I'm sorry","emoji":"🙇","when":"apologizing","week":2},
+    {"id":"yatta","kana":"やった!","romaji":"yatta!","en":"yay! I did it!","emoji":"🎉","when":"celebrating","week":2},
+    {"id":"daisuki","kana":"だいすき","romaji":"daisuki","en":"I love it / you","emoji":"💖","when":"affection","week":2},
+    {"id":"wakatta","kana":"わかった","romaji":"wakatta","en":"got it!","emoji":"💡","when":"understanding","week":2},
+    {"id":"mou-ikkai","kana":"もういっかい","romaji":"mou ikkai","en":"one more time!","emoji":"🔁","when":"asking to repeat","week":2},
+    {"id":"matane","kana":"またね","romaji":"matane","en":"see you later","emoji":"🫡","when":"goodbye to friends","week":2},
+    {"id":"ittekimasu","kana":"いってきます","romaji":"ittekimasu","en":"I'm off! (leaving home)","emoji":"🚪","when":"leaving the house","week":3},
+    {"id":"itterasshai","kana":"いってらっしゃい","romaji":"itterasshai","en":"have a good day! (to someone leaving)","emoji":"👋🏠","when":"someone leaves home","week":3},
+    {"id":"tadaima","kana":"ただいま","romaji":"tadaima","en":"I'm home!","emoji":"🏠","when":"arriving home","week":3},
+    {"id":"okaeri","kana":"おかえり","romaji":"okaeri","en":"welcome back!","emoji":"🤗","when":"someone comes home","week":3},
+    {"id":"konbanwa","kana":"こんばんは","romaji":"konbanwa","en":"good evening","emoji":"🌙","when":"evening greeting","week":3},
+    {"id":"genki","kana":"げんき?","romaji":"genki?","en":"how are you?","emoji":"🙂❓","when":"asking how someone is","week":4},
+    {"id":"genki-dayo","kana":"げんきだよ","romaji":"genki dayo","en":"I'm good!","emoji":"💪","when":"answering genki?","week":4},
+    {"id":"ganbatte","kana":"がんばって","romaji":"ganbatte","en":"you can do it!","emoji":"📣","when":"cheering someone on","week":4},
+    {"id":"douitashimashite","kana":"どういたしまして","romaji":"douitashimashite","en":"you're welcome","emoji":"😊","when":"answering thanks","week":4},
+    {"id":"douzo","kana":"どうぞ","romaji":"douzo","en":"here you go","emoji":"🤲","when":"handing something over","week":5},
+    {"id":"sumimasen","kana":"すみません","romaji":"sumimasen","en":"excuse me","emoji":"🙋","when":"getting attention / mild apology","week":5},
+    {"id":"onaka-suita","kana":"おなかすいた","romaji":"onaka suita","en":"I'm hungry","emoji":"🤤","when":"before meals","week":5},
+    {"id":"hajimemashite","kana":"はじめまして","romaji":"hajimemashite","en":"nice to meet you","emoji":"🤝","when":"meeting someone new","week":6},
+    {"id":"onamae-wa","kana":"おなまえは?","romaji":"onamae wa?","en":"what's your name?","emoji":"❓","when":"meeting someone new","week":6},
+    {"id":"omedetou","kana":"おめでとう","romaji":"omedetou","en":"congratulations","emoji":"🎊","when":"celebrations","week":7},
+    {"id":"tanjoubi-omedetou","kana":"おたんじょうびおめでとう","romaji":"otanjoubi omedetou","en":"happy birthday","emoji":"🎂","week":8,"when":"birthdays"}
+  ],
+  "kanaGroups": [
+    {"id":"g01","order":1,"name":"あ row","kana":[{"k":"あ","r":"a"},{"k":"い","r":"i"},{"k":"う","r":"u"},{"k":"え","r":"e"},{"k":"お","r":"o"}]},
+    {"id":"g02","order":2,"name":"か row","kana":[{"k":"か","r":"ka"},{"k":"き","r":"ki"},{"k":"く","r":"ku"},{"k":"け","r":"ke"},{"k":"こ","r":"ko"}]},
+    {"id":"g03","order":3,"name":"さ row","kana":[{"k":"さ","r":"sa"},{"k":"し","r":"shi"},{"k":"す","r":"su"},{"k":"せ","r":"se"},{"k":"そ","r":"so"}]},
+    {"id":"g04","order":4,"name":"た row","kana":[{"k":"た","r":"ta"},{"k":"ち","r":"chi"},{"k":"つ","r":"tsu"},{"k":"て","r":"te"},{"k":"と","r":"to"}]},
+    {"id":"g05","order":5,"name":"な row","kana":[{"k":"な","r":"na"},{"k":"に","r":"ni"},{"k":"ぬ","r":"nu"},{"k":"ね","r":"ne"},{"k":"の","r":"no"}]},
+    {"id":"g06","order":6,"name":"は row","kana":[{"k":"は","r":"ha"},{"k":"ひ","r":"hi"},{"k":"ふ","r":"fu"},{"k":"へ","r":"he"},{"k":"ほ","r":"ho"}]},
+    {"id":"g07","order":7,"name":"ま row","kana":[{"k":"ま","r":"ma"},{"k":"み","r":"mi"},{"k":"む","r":"mu"},{"k":"め","r":"me"},{"k":"も","r":"mo"}]},
+    {"id":"g08","order":8,"name":"や row","kana":[{"k":"や","r":"ya"},{"k":"ゆ","r":"yu"},{"k":"よ","r":"yo"}]},
+    {"id":"g09","order":9,"name":"ら row","kana":[{"k":"ら","r":"ra"},{"k":"り","r":"ri"},{"k":"る","r":"ru"},{"k":"れ","r":"re"},{"k":"ろ","r":"ro"}]},
+    {"id":"g10","order":10,"name":"わ row + ん","kana":[{"k":"わ","r":"wa"},{"k":"を","r":"wo"},{"k":"ん","r":"n"}]}
+  ],
+  "patterns": [
+    {"id":"kore-wa","order":1,"frameKana":"これは◯◯です","romaji":"kore wa ___ desu","en":"This is a ___","slot":{"pos":["n"]},"unlock":{"knownWords":40},"examples":[{"kana":"これはねこです","en":"This is a cat"},{"kana":"これはバナナです","en":"This is a banana"}]},
+    {"id":"kudasai","order":2,"frameKana":"◯◯ください","romaji":"___ kudasai","en":"___, please!","slot":{"pos":["n"],"units":["food","things","first-words","school"]},"unlock":{"knownWords":40},"examples":[{"kana":"みずください","en":"Water, please"},{"kana":"りんごください","en":"An apple, please"}]},
+    {"id":"ga-suki","order":3,"frameKana":"◯◯がすき!","romaji":"___ ga suki!","en":"I like ___!","slot":{"pos":["n"]},"unlock":{"knownWords":50},"examples":[{"kana":"ねこがすき!","en":"I like cats!"},{"kana":"いちごがすき!","en":"I like strawberries!"}]},
+    {"id":"wa-doko","order":4,"frameKana":"◯◯はどこ?","romaji":"___ wa doko?","en":"Where is ___?","slot":{"pos":["n"]},"unlock":{"knownWords":50},"examples":[{"kana":"くつはどこ?","en":"Where are my shoes?"},{"kana":"おかあさんはどこ?","en":"Where is Mom?"}]},
+    {"id":"akai-noun","order":5,"frameKana":"あかい◯◯","romaji":"akai ___ (color + thing)","en":"a red ___","colorSlot":["aka","ao","shiro","kuro","kiiro","chairo"],"slot":{"pos":["n"]},"unlock":{"knownWords":40,"unitStarted":"colors"},"examples":[{"kana":"あかいくるま","en":"a red car"},{"kana":"くろいねこ","en":"a black cat"}]},
+    {"id":"ga-iru","order":6,"frameKana":"◯◯がいる!","romaji":"___ ga iru!","en":"There's a ___! (animals & people)","slot":{"pos":["n"],"units":["animals","family","first-words"]},"unlock":{"knownWords":60},"examples":[{"kana":"ぞうがいる!","en":"There's an elephant!"}]},
+    {"id":"ga-aru","order":7,"frameKana":"◯◯がある!","romaji":"___ ga aru!","en":"There's a ___! (things)","slot":{"pos":["n"],"units":["food","things","school","transport","nature"]},"unlock":{"knownWords":60},"examples":[{"kana":"ケーキがある!","en":"There's cake!"}]},
+    {"id":"ja-nai","order":8,"frameKana":"◯◯じゃない!","romaji":"___ ja nai!","en":"It's not a ___!","slot":{"pos":["n"]},"unlock":{"knownWords":70},"examples":[{"kana":"ねこじゃない!","en":"It's not a cat!"}]}
+  ]
+};
+
+/* ===================== DERIVED ===================== */
+const REG = {};                 // key -> item
+const WORD = {}, PHRASE = {}, UNIT = {}, PAT = {};
+const WORDS_BY_UNIT = {};
+const KANA_LIST = [];           // {key,kana,reading,group,groupOrder}
+DATA.units.forEach(u=>{ UNIT[u.id]=u; WORDS_BY_UNIT[u.id]=[]; });
+DATA.words.forEach(w=>{
+  const it={key:'w:'+w.id,type:'word',id:w.id,kana:w.kana,emoji:w.emoji,en:w.en,romaji:w.romaji,unit:w.unit,pos:w.pos,iForm:w.iForm,note:w.note,speak:w.kana,isBody:w.unit==='body'};
+  REG[it.key]=it; WORD[w.id]=it; WORDS_BY_UNIT[w.unit].push(it);
+});
+DATA.phrases.forEach(p=>{
+  const it={key:'p:'+p.id,type:'phrase',id:p.id,kana:p.kana,emoji:p.emoji,en:p.en,romaji:p.romaji,week:p.week,when:p.when,speak:cleanSpeak(p.kana),unit:'_phrase'};
+  REG[it.key]=it; PHRASE[p.id]=it;
+});
+DATA.kanaGroups.forEach(g=>g.kana.forEach(k=>{
+  const it={key:'k:'+k.k,type:'kana',id:k.k,kana:k.k,reading:k.r,group:g.id,groupOrder:g.order,speak:k.k,unit:'_kana'};
+  REG[it.key]=it; KANA_LIST.push(it);
+}));
+DATA.patterns.forEach(pt=>{
+  const it={key:'pat:'+pt.id,type:'pattern',id:pt.id,ref:pt,unit:'_pattern'};
+  REG[it.key]=it; PAT[pt.id]=it;
+});
+function cleanSpeak(s){ return (s||'').replace(/[!！?？]/g,''); }
+
+/* ===================== HELPERS ===================== */
+const $=(sel,root)=>(root||document).querySelector(sel);
+function h(tag,attrs,...kids){
+  const e=document.createElement(tag); attrs=attrs||{};
+  for(const k in attrs){
+    const v=attrs[k];
+    if(v==null||v===false) continue;
+    if(k==='class') e.className=v;
+    else if(k==='style') e.style.cssText=v;
+    else if(k==='html') e.innerHTML=v;
+    else if(k.slice(0,2)==='on'&&typeof v==='function') e.addEventListener(k.slice(2).toLowerCase(),v);
+    else e.setAttribute(k,v);
+  }
+  kids.flat(9).forEach(kid=>{ if(kid==null||kid===false) return; e.appendChild(typeof kid==='object'?kid:document.createTextNode(''+kid)); });
+  return e;
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function sample(a){ return a[Math.floor(Math.random()*a.length)]; }
+function pad(n){ return n<10?'0'+n:''+n; }
+function todayStr(d){ d=d||new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function strToDate(s){ const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function addDaysStr(s,n){ const d=strToDate(s); d.setDate(d.getDate()+n); return todayStr(d); }
+function daysBetween(a,b){ return Math.round((strToDate(b)-strToDate(a))/86400000); }
+function weekId(d){ const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const dn=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-dn+3); const ft=new Date(dt.getFullYear(),0,4); const w=1+Math.round(((dt-ft)/86400000-3+((ft.getDay()+6)%7))/7); return dt.getFullYear()*100+w; }
+
+/* ===================== AUDIO ===================== */
+const Audio2={
+  voice:null, primed:false, supported:('speechSynthesis' in window),
+  init(){
+    if(!this.supported) return;
+    const load=()=>{ const vs=speechSynthesis.getVoices()||[];
+      this.voice = vs.find(v=>v.lang==='ja-JP') || vs.find(v=>(v.lang||'').toLowerCase().indexOf('ja')===0) || vs.find(v=>/kyoko|otoya|japan/i.test(v.name)) || null; };
+    load();
+    try{ speechSynthesis.onvoiceschanged=load; }catch(e){}
+    // iOS sometimes needs a nudge
+    setTimeout(load,400); setTimeout(load,1500);
+  },
+  prime(){ if(!this.supported||this.primed) return;
+    try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; u.lang='ja-JP'; speechSynthesis.speak(u); this.primed=true; }catch(e){}
+    const vs=(speechSynthesis.getVoices&&speechSynthesis.getVoices())||[];
+    if(!this.voice&&vs.length) this.voice=vs.find(v=>(v.lang||'').toLowerCase().indexOf('ja')===0)||null;
+  },
+  hasVoice(){ return !!this.voice; },
+  speak(text,opts){ if(!this.supported||!text) return;
+    try{ speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='ja-JP'; u.rate=(opts&&opts.rate)||0.85; u.pitch=(opts&&opts.pitch)||1.15;
+      if(this.voice) u.voice=this.voice;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  },
+  speakItem(it,opts){ if(!it) return; this.speak(it.speak||it.kana,opts); }
+};
+
+/* ===================== STORAGE ===================== */
+const SLOTS=[{id:'A',track:'A',age:5},{id:'B',track:'B',age:8}];
+const AVATARS=[
+  {e:'🦊',c:'#ff7a45'},{e:'🐼',c:'#5c6bc0'},{e:'🐱',c:'#f5a524'},{e:'🐰',c:'#ec5f8a'},
+  {e:'🐻',c:'#a1745c'},{e:'🐧',c:'#22a6e0'},{e:'🦁',c:'#e8a800'},{e:'🐨',c:'#2aa79b'},
+  {e:'🐸',c:'#5fb35f'},{e:'🐵',c:'#c58a4a'},{e:'🦄',c:'#b06fd6'},{e:'🐬',c:'#3aa0d8'}
+];
+const SCHEMA=1;
+const KEY=id=>'jfk:'+id;
+function loadProfile(id){ try{ const raw=localStorage.getItem(KEY(id)); if(!raw) return null; const p=JSON.parse(raw); return migrate(p);}catch(e){ return null; } }
+function saveProfile(p){ if(!p) return; try{ localStorage.setItem(KEY(p.id),JSON.stringify(p)); }catch(e){} }
+function migrate(p){ if(!p.schema) p.schema=1; if(!p.items) p.items={}; if(!p.settings) p.settings={newPerDay:p.track==='A'?4:5,sessionLen:'normal'}; if(!p.streak) p.streak={count:0,lastDate:null,graceWeek:null}; if(!p.garden) p.garden={growth:0}; if(!p.stickers) p.stickers=[]; if(!p.stats) p.stats={sessions:0,lastSessionDate:null}; if(!p.flags) p.flags={}; return p; }
+function newProfile(slot,av){
+  return { schema:SCHEMA, id:slot.id, track:slot.track, age:slot.age, avatar:av.e, color:av.c,
+    createdDate:todayStr(), items:{}, streak:{count:0,lastDate:null,graceWeek:null}, garden:{growth:0},
+    stickers:[], settings:{newPerDay:slot.track==='A'?4:5, sessionLen:'normal', romaji:true}, stats:{sessions:0,lastSessionDate:null}, flags:{} };
+}
+
+/* ===================== SRS ===================== */
+const BOX_DAYS=[null,1,2,4,8,16];
+function st(p,key){ return p.items[key]; }
+function isIntroduced(p,key){ const s=p.items[key]; return !!(s&&s.introducedDate); }
+function isKnownKey(p,key){ const s=p.items[key]; return !!(s&&s.box>=3); }
+function introduceItem(p,key){
+  const t=todayStr();
+  if(!p.items[key]) p.items[key]={box:1,due:addDaysStr(t,1),introducedDate:t,lastReviewed:t};
+  else if(!p.items[key].introducedDate) p.items[key].introducedDate=t;
+  saveProfile(p);
+}
+function gradeItem(p,key,correct){
+  const t=todayStr(); let s=p.items[key];
+  if(!s){ s=p.items[key]={box:1,due:addDaysStr(t,1),introducedDate:t,lastReviewed:t}; }
+  const before=s.box>=3;
+  if(correct){ s.box=Math.min(5,(s.box||1)+1); s.due=addDaysStr(t,BOX_DAYS[s.box]); }
+  else { s.box=1; s.due=t; }
+  s.lastReviewed=t;
+  return { before, after:s.box>=3 };
+}
+function getDue(p){
+  const t=todayStr(); const out=[];
+  for(const key in p.items){ const s=p.items[key]; if(!s.introducedDate) continue;
+    if(s.due && daysBetween(s.due,t)>=0){ const it=REG[key]; if(it) out.push(it); } }
+  out.sort((a,b)=>{ const sa=p.items[a.key],sb=p.items[b.key]; if(sa.due!==sb.due) return sa.due<sb.due?-1:1; return sa.box-sb.box; });
+  return out;
+}
+function backlogCount(p){ return getDue(p).length; }
+function knownWordCount(p){ let n=0; for(const w of DATA.words) if(isKnownKey(p,'w:'+w.id)) n++; return n; }
+function knownCountAll(p){ let n=0; for(const k in p.items) if(p.items[k].box>=3) n++; return n; }
+function unitKnownFraction(p,uid){ const ws=WORDS_BY_UNIT[uid]||[]; if(!ws.length) return 1; let k=0; ws.forEach(it=>{ if(isKnownKey(p,it.key)) k++; }); return k/ws.length; }
+function unitOpen(p,u){ if(u.order===1) return true; const prev=DATA.units.find(x=>x.order===u.order-1); if(!prev) return true; return unitKnownFraction(p,prev.id)>=0.6; }
+function daysSinceStart(p){ return daysBetween(p.createdDate,todayStr()); }
+
+/* Unlocks */
+function hiraganaUnlocked(p){ return p.track==='B' && (daysSinceStart(p)>=30 || knownWordCount(p)>=60); }
+function unitStarted(p,uid){ return (WORDS_BY_UNIT[uid]||[]).some(it=>isIntroduced(p,it.key)); }
+function patternUnlocked(p,pt){ if(p.track!=='B') return false; const u=pt.unlock||{};
+  if(knownWordCount(p) < (u.knownWords||0)) return false;
+  if(u.unitStarted && !unitStarted(p,u.unitStarted)) return false; return true; }
+function unlockedPatterns(p){ return DATA.patterns.filter(pt=>patternUnlocked(p,pt)); }
+
+/* New-item selection (words) */
+function introducedTodayCount(p){ const t=todayStr(); let n=0; for(const k in p.items) if(p.items[k].introducedDate===t) n++; return n; }
+function pickNewWords(p,backlog){
+  if(backlog>=15) return [];                    // post-holiday backlog pause
+  const cap=p.settings.newPerDay||(p.track==='A'?4:5);
+  let slots=Math.max(0,cap-introducedTodayCount(p));
+  if(slots<=0) return [];
+  const cands=[];
+  const ordered=[...DATA.units].sort((a,b)=>a.order-b.order);
+  for(const u of ordered){ if(!unitOpen(p,u)) continue;
+    for(const it of WORDS_BY_UNIT[u.id]){ if(!isIntroduced(p,it.key)) cands.push(it); } }
+  return cands.slice(0,slots);
+}
+function pickNewPhrase(p){
+  const days=daysSinceStart(p);
+  const elig=DATA.phrases.filter(ph=>{ const it=PHRASE[ph.id]; return !isIntroduced(p,it.key) && days>=(ph.week-1)*7; });
+  elig.sort((a,b)=>a.week-b.week);
+  return elig.length?PHRASE[elig[0].id]:null;
+}
+function yesterdayItems(p){
+  const y=addDaysStr(todayStr(),-1); const out=[];
+  for(const k in p.items){ const s=p.items[k]; if(s.lastReviewed===y||s.introducedDate===y){ const it=REG[k]; if(it&&(it.type==='word'||it.type==='phrase')) out.push(it); } }
+  return shuffle(out).slice(0,4);
+}
+
+/* ===================== OPTIONS / DISTRACTORS ===================== */
+function poolForItem(it){
+  if(it.type==='phrase') return Object.values(PHRASE);
+  if(it.type==='kana') return KANA_LIST;
+  return Object.values(WORD).filter(w=>!w.isBody);
+}
+function pickOptions(target,pool,n,keyFn){
+  keyFn=keyFn||(x=>x.emoji);
+  const chosen=[target]; const used=new Set([keyFn(target)]);
+  const same=shuffle(pool.filter(x=>x.key!==target.key&&x.unit===target.unit&&!used.has(keyFn(x))));
+  const other=shuffle(pool.filter(x=>x.key!==target.key&&x.unit!==target.unit&&!used.has(keyFn(x))));
+  for(const x of same.concat(other)){ if(chosen.length>=n) break; if(used.has(keyFn(x))) continue; chosen.push(x); used.add(keyFn(x)); }
+  return shuffle(chosen);
+}
+
+/* ===================== APP STATE / ROUTER ===================== */
+const APP=$('#app');
+let CUR=null;             // current profile
+let SESS=null;           // session state
+function setAccent(p){ if(p){ document.documentElement.style.setProperty('--accent',p.color); document.documentElement.style.setProperty('--accent2',shade(p.color,0.18)); document.querySelector('meta[name=theme-color]').setAttribute('content',p.color);} }
+function shade(hex,amt){ try{ let c=hex.replace('#',''); if(c.length===3)c=c.split('').map(x=>x+x).join(''); const n=parseInt(c,16); let r=(n>>16)+Math.round(255*amt),g=((n>>8)&255)+Math.round(255*amt),b=(n&255)+Math.round(255*amt); r=Math.min(255,r);g=Math.min(255,g);b=Math.min(255,b); return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}catch(e){return hex;} }
+function clear(){ APP.innerHTML=''; }
+function mount(node){ clear(); document.querySelectorAll('body > .overlay, body > .toast, body > .confetti').forEach(o=>o.remove()); APP.appendChild(node); }
+
+/* ---------- Splash / voice check ---------- */
+function screenSplash(){
+  Audio2.init();
+  const s=h('div',{class:'screen'},
+    h('div',{class:'center'},
+      h('div',{style:'font-size:110px;animation:bob 1.6s infinite'},'🎌'),
+      h('div',{class:'big-kana',style:'font-size:clamp(40px,7vh,72px)'},'Japanese for Kids'),
+      h('div',{class:'gloss',style:'font-size:34px'},'にほんご'),
+      h('button',{class:'btn primary big',onclick:()=>{ Audio2.prime(); Audio2.speak('こんにちは'); setTimeout(routeStart,120); }},'▶️ Start')
+    )
+  );
+  mount(s);
+}
+function routeStart(){
+  const a=loadProfile('A'), b=loadProfile('B');
+  if(!a&&!b) return screenProfiles(true);
+  screenProfiles(false);
+}
+
+/* ---------- Who's playing ---------- */
+function screenProfiles(firstRun){
+  const a=loadProfile('A'), b=loadProfile('B');
+  const tile=(slot,prof)=>{
+    if(prof) return h('button',{class:'btn',style:'flex-direction:column;width:min(38vw,340px);height:min(52vh,380px);gap:10px;background:'+prof.color+';color:#fff',
+      onclick:()=>enterProfile(prof.id)},
+      h('div',{style:'font-size:120px'},prof.avatar),
+      h('div',{class:'kana',style:'font-size:30px'},'Age '+slot.age+(slot.track==='B'?' • reads kana':''))
+    );
+    return h('button',{class:'btn ghost',style:'flex-direction:column;width:min(38vw,340px);height:min(52vh,380px);gap:12px',
+      onclick:()=>screenAvatar(slot)},
+      h('div',{style:'font-size:96px;opacity:.5'},'➕'),
+      h('div',{class:'hint-kana'},'Age '+slot.age)
+    );
+  };
+  const s=h('div',{class:'screen'},
+    gearNode(),
+    h('div',{class:'center'},
+      h('div',{class:'hint-kana',style:'font-size:34px'},'Who’s playing?'),
+      h('div',{class:'row',style:'gap:34px'}, tile(SLOTS[0],a), tile(SLOTS[1],b))
+    )
+  );
+  mount(s);
+  maybeVoiceWarning();
+}
+
+/* ---------- Avatar pick ---------- */
+function screenAvatar(slot){
+  let picked=null;
+  const grid=h('div',{class:'row',style:'max-width:760px'});
+  AVATARS.forEach(av=>{
+    const b=h('button',{class:'btn',style:'width:120px;height:120px;font-size:60px;background:'+av.c+'22;border:4px solid transparent',
+      onclick:()=>{ picked=av; [...grid.children].forEach(c=>c.style.borderColor='transparent'); b.style.borderColor=av.c; go.disabled=false; go.style.opacity=1; Audio2.prime(); }}, av.e);
+    grid.appendChild(b);
+  });
+  const go=h('button',{class:'btn primary big',disabled:true,style:'opacity:.4',
+    onclick:()=>{ if(!picked) return; const p=newProfile(slot,picked); saveProfile(p); enterProfile(p.id); }},'✓ Done');
+  mount(h('div',{class:'screen'},
+    h('div',{class:'center'},
+      h('div',{class:'hint-kana'},'Pick your buddy!'),
+      grid, go,
+      h('button',{class:'btn ghost',style:'min-height:60px;font-size:22px',onclick:()=>screenProfiles(false)},'← Back')
+    )
+  ));
+}
+
+function enterProfile(id){ CUR=loadProfile(id); setAccent(CUR); screenHome(); }
+
+/* ---------- Voice warning (parent-facing) ---------- */
+function maybeVoiceWarning(){
+  if(!Audio2.supported){ return showParentNote('🔊 Audio not supported','This browser doesn’t support speech. Please use Safari on iPad.'); }
+  const check=()=>{ if(!Audio2.hasVoice()){ showParentNote('🔊 Turn on Japanese audio','No Japanese voice found. On iPad: Settings → Accessibility → Spoken Content → Voices → add Japanese (Kyoko). Then reopen this app.'); } };
+  setTimeout(check,1800);
+}
+let noteShown=false;
+function showParentNote(kana,en){
+  if(noteShown) return; noteShown=true;
+  const ov=h('div',{class:'overlay',onclick:e=>{ if(e.target===ov){ ov.remove(); noteShown=false; }}},
+    h('div',{class:'sheet',style:'max-width:520px;text-align:center'},
+      h('div',{style:'font-size:60px'},'🔊'),
+      h('div',{class:'hint-kana',style:'margin:8px 0'},kana),
+      h('div',{style:'font-size:16px;color:var(--muted);line-height:1.5'},en),
+      h('button',{class:'btn primary',style:'margin-top:16px',onclick:()=>{ ov.remove(); noteShown=false; }},'OK')
+    )
+  );
+  document.body.appendChild(ov);
+}
+
+/* ===================== HOME ===================== */
+function screenHome(){
+  const p=CUR;
+  const doneToday=p.stats.lastSessionDate===todayStr();
+  const known=knownWordCount(p);
+  const ring=questRing(doneToday?1:0, doneToday?'🎉':'▶️', doneToday?'All done!':'Play!');
+  const start=h('button',{class:'btn primary',style:'position:absolute;inset:0;background:transparent;box-shadow:none',
+    onclick:()=>startSession()});
+  const left=h('div',{class:'home-left'},
+    h('div',{style:'font-size:64px'},p.avatar),
+    h('div',{class:'circle-quest'}, ring, start),
+    h('div',{class:'chips'},
+      h('div',{class:'chip'},'🔥 ',streakLabel(p)),
+      h('div',{class:'chip'},'⭐ ',known,' words')
+    )
+  );
+  const right=h('div',{class:'home-right'},
+    h('div',{class:'panel',style:'flex:1;min-height:0;display:flex;flex-direction:column;gap:8px'},
+      h('div',{class:'hint-kana',style:'font-size:22px;text-align:center'},'🌸 My Garden'),
+      h('div',{style:'flex:1;min-height:0'}, gardenSVG(p))
+    ),
+    h('div',{class:'row',style:'gap:12px'},
+      h('button',{class:'btn ghost',style:'flex:1;min-height:74px;font-size:24px',onclick:screenStickers},'🏅 Stickers'),
+      h('button',{class:'btn ghost',style:'flex:1;min-height:74px;font-size:24px',onclick:()=>screenProfiles(false)},'🔄 Switch')
+    )
+  );
+  mount(h('div',{class:'screen'}, gearNode(), h('div',{class:'home-wrap'}, left, right)));
+}
+function streakLabel(p){ const n=p.streak.count||0; return n+(n===1?' day':' days'); }
+
+function questRing(frac,icon,label){
+  const R=120, C=2*Math.PI*R, off=C*(1-Math.max(0.001,Math.min(1,frac)));
+  const svg=`<svg viewBox="0 0 280 280" style="width:100%;height:100%">
+    <circle cx="140" cy="140" r="${R}" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="22"/>
+    <circle cx="140" cy="140" r="${R}" fill="none" stroke="var(--accent)" stroke-width="22" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 140 140)"/>
+  </svg>`;
+  return h('div',{style:'position:relative;width:100%;height:100%'},
+    h('div',{html:svg,style:'position:absolute;inset:0'}),
+    h('div',{class:'cta'}, h('div',{class:'big'},icon), h('div',{class:'kana'},label))
+  );
+}
+
+/* ---------- Garden ---------- */
+function gardenSVG(p){
+  const g=p.garden.growth||0;
+  const known=knownWordCount(p);
+  const creature = known>=100?'🦜' : known>=50?'🐤' : known>=25?'🐥' : known>=10?'🐣' : '🥚';
+  const flowers=['🌷','🌸','🌻','🌼','🌺','🏵️'];
+  let plants='';
+  const n=Math.min(g,18);
+  for(let i=0;i<n;i++){ const x=8+ (i*88%84) + (i%3)*3; const y=70+ (i%4)*7; const f=flowers[i%flowers.length]; plants+=`<text x="${x}" y="${y}" font-size="9">${f}</text>`; }
+  const trees = known>=25?'<text x="6" y="66" font-size="16">🌳</text>':'';
+  const trees2 = known>=50?'<text x="86" y="66" font-size="16">🌳</text>':'';
+  const svg=`<svg viewBox="0 0 100 88" class="garden" preserveAspectRatio="xMidYMid slice">
+    <text x="80" y="18" font-size="14">☀️</text>
+    <text x="14" y="16" font-size="9">☁️</text>
+    <text x="46" y="52" font-size="22" style="animation:bob 2s infinite">${creature}</text>
+    ${trees}${trees2}${plants}
+  </svg>`;
+  return h('div',{html:svg,style:'width:100%;height:100%'});
+}
+
+/* ===================== SESSION ===================== */
+function startSession(){
+  const p=CUR;
+  const acts=composeSession(p);
+  SESS={ acts, i:0, correct:0, total:0, newlyKnown:[], introduced:[], seen:new Set() };
+  runNext();
+}
+function questHeader(){
+  const frac = SESS.acts.length? SESS.i/SESS.acts.length : 0;
+  return h('div',{class:'shead'},
+    h('div',{class:'mini-ava'},CUR.avatar),
+    h('div',{class:'quest'}, questMini(frac)),
+    h('button',{class:'btn ghost',style:'min-height:56px;min-width:56px;font-size:24px;padding:0 16px',onclick:confirmQuit},'✕')
+  );
+}
+function questMini(frac){
+  const R=44,C=2*Math.PI*R,off=C*(1-Math.max(0.02,Math.min(1,frac)));
+  return h('div',{html:`<svg viewBox="0 0 110 110" style="width:100%;height:100%">
+    <circle cx="55" cy="55" r="${R}" fill="none" stroke="rgba(0,0,0,.07)" stroke-width="12"/>
+    <circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round"
+     stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 55 55)"/>
+    <text x="55" y="70" text-anchor="middle" font-size="34">⭐</text></svg>`});
+}
+function confirmQuit(){
+  const ov=h('div',{class:'overlay'},
+    h('div',{class:'sheet',style:'max-width:420px;text-align:center'},
+      h('div',{style:'font-size:52px'},'🐾'),
+      h('div',{class:'hint-kana'},'Stop for now?'),
+      h('div',{class:'row',style:'margin-top:14px'},
+        h('button',{class:'btn ghost',onclick:()=>ov.remove()},'Keep going'),
+        h('button',{class:'btn primary',onclick:()=>{ ov.remove(); screenHome(); }},'Stop')
+      )
+    ));
+  document.body.appendChild(ov);
+}
+function stage(...kids){
+  const wrap=h('div',{class:'screen'}, questHeader(), h('div',{class:'center'},...kids));
+  mount(wrap); return wrap;
+}
+function runNext(){
+  if(SESS.i>=SESS.acts.length) return endSession();
+  const act=SESS.acts[SESS.i];
+  act(()=>{ SESS.i++; runNext(); });
+}
+/* record a graded answer */
+function record(it,correct){
+  SESS.total++; if(correct) SESS.correct++;
+  const r=gradeItem(CUR,it.key,correct);
+  if(!r.before && r.after) SESS.newlyKnown.push(it.key);
+  SESS.seen.add(it.key);
+  saveProfile(CUR);
+}
+
+/* ---------- Session composer ---------- */
+function lenMult(p){ return p.settings.sessionLen==='short'?0.7 : p.settings.sessionLen==='long'?1.35 : 1; }
+function composeSession(p){
+  const due=getDue(p);
+  const backlog=due.length;
+  const m=lenMult(p);
+  const dueBody=due.filter(it=>it.type==='word'&&it.isBody);
+  const dueWordPh=due.filter(it=>(it.type==='word'&&!it.isBody)||it.type==='phrase');
+  const dueKana=due.filter(it=>it.type==='kana');
+  const duePat=due.filter(it=>it.type==='pattern');
+  const acts=[];
+  // warm-up
+  const warm=yesterdayItems(p);
+  if(warm.length) acts.push(actWarmup(warm));
+
+  if(p.track==='A'){
+    const tap=shuffle(dueWordPh).slice(0,Math.round(5*m));
+    if(tap.length) acts.push(actTap(tap));
+    const matchPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,3);
+    if(matchPool.length>=3) acts.push(actMatch(matchPool.slice(0,3)));
+    if(dueBody.length) acts.push(actBody(shuffle(dueBody).slice(0,Math.round(4*m))));
+    // new words
+    const nw=pickNewWords(p,backlog);
+    nw.forEach(it=> acts.push(it.isBody?actBodyIntro(it):actIntro(it)));
+    // new phrase (folded)
+    const ph=pickNewPhrase(p); if(ph && nw.length<(p.settings.newPerDay)) acts.push(actIntro(ph));
+    // say-it finale
+    const sayItems = (nw.length?nw:shuffle(dueWordPh).slice(0,2)).slice(0,2);
+    if(sayItems.length) acts.push(actSayIt(sayItems));
+  } else {
+    const tap=shuffle(dueWordPh).slice(0,Math.round(5*m));
+    if(tap.length) acts.push(actTap(tap));
+    const prodPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,Math.round(4*m));
+    if(prodPool.length) acts.push(actProduction(prodPool));
+    if(dueBody.length) acts.push(actBody(shuffle(dueBody).slice(0,Math.round(4*m))));
+    // kana block (month 2+)
+    if(hiraganaUnlocked(p)) acts.push(actKanaBlock(p,dueKana));
+    // patterns
+    if(p.track==='B' && unlockedPatterns(p).length) acts.push(actPatternBlock(p,duePat));
+    // new words
+    const nw=pickNewWords(p,backlog);
+    nw.forEach(it=> acts.push(it.isBody?actBodyIntro(it):actIntro(it)));
+    // phrase of the day
+    const ph=pickNewPhrase(p) || sample(shuffle(dueWordPh.filter(x=>x.type==='phrase')).concat([null]));
+    if(ph) acts.push(actPhraseOfDay(ph));
+  }
+  if(acts.length<=1){ // nothing due & nothing new -> gentle practice
+    const anyKnown=Object.values(REG).filter(it=>(it.type==='word')&&isIntroduced(p,it.key));
+    const practice=shuffle(anyKnown).slice(0,4);
+    if(practice.length) acts.push(actTap(practice));
+  }
+  return acts;
+}
+
+/* ===================== GAMES ===================== */
+/* helper: speaker button */
+function speakerBtn(it,cls){ const b=h('button',{class:'speaker '+(cls||''),onclick:()=>{ Audio2.prime(); Audio2.speakItem(it); }},'🔊'); return b; }
+function bigEmoji(it,size){ return h('div',{style:'font-size:'+(size||'clamp(90px,22vh,190px)')},it.emoji); }
+function glossOf(it){ return (it && (it.type==='word'||it.type==='phrase')) ? (it.en||'') : ''; }
+function glossNode(it,cls){ const g=glossOf(it); return g? h('div',{class:'gloss'+(cls?' '+cls:'')}, g) : null; }
+function romajiOn(){ return !!(CUR && CUR.settings && CUR.settings.romaji!==false); }
+function romajiOf(it){ if(!it) return ''; if(it.type==='kana') return it.reading||''; return it.romaji||''; }
+function romajiNode(it){ if(!romajiOn()) return null; const r=romajiOf(it); return r? h('div',{class:'romaji'}, r) : null; }
+function encourage(){ return sample(['Yay!','Great!','Awesome!','Nice!','Well done!','Woohoo!']); }
+function retryWord(){ return '🔁 Try again!'; }
+function feedbackToast(txt){ const t=h('div',{class:'toast'},txt); document.body.appendChild(t); setTimeout(()=>t.remove(),900); }
+function confettiBurst(){ const c=h('div',{class:'confetti'}); const em=['🎉','⭐','✨','🌟','🎊']; for(let i=0;i<26;i++){ const s=h('i',{style:`left:${Math.random()*100}%;animation-duration:${1.6+Math.random()*1.4}s;animation-delay:${Math.random()*0.5}s`},sample(em)); c.appendChild(s);} document.body.appendChild(c); setTimeout(()=>c.remove(),2600); }
+
+/* Warm-up: replay yesterday, no grading */
+function actWarmup(items){
+  return (done)=>{
+    let i=0;
+    function one(){
+      if(i>=items.length){ done(); return; }
+      const it=items[i];
+      Audio2.speakItem(it);
+      stage(
+        h('div',{class:'hint-kana'},'👋 Yesterday’s words'),
+        bigEmoji(it),
+        h('div',{class:'big-kana'},it.kana),
+        romajiNode(it),
+        glossNode(it),
+        h('div',{class:'row'},
+          speakerBtn(it),
+          h('button',{class:'btn primary big',onclick:()=>{ i++; one(); }},'Next →')
+        )
+      );
+    }
+    one();
+  };
+}
+
+/* Tap-what-you-hear */
+function actTap(items){
+  return (done)=>{
+    let i=0;
+    function round(){
+      if(i>=items.length){ done(); return; }
+      const target=items[i];
+      const opts=pickOptions(target,poolForItem(target),4);
+      let answered=false;
+      const cards=h('div',{class:'cards g4'});
+      opts.forEach(o=>{
+        const card=h('div',{class:'card',onclick:()=>{
+          if(answered && o.key!==target.key) return;
+          if(o.key===target.key){
+            if(!answered){ answered=true; record(target,true); }
+            card.classList.add('correct'); Audio2.speakItem(target); feedbackToast(encourage());
+            setTimeout(()=>{ i++; round(); },850);
+          } else {
+            if(!answered){ answered=true; record(target,false); }
+            card.classList.add('wrong'); Audio2.speak(cleanSpeak('もういっかい')); feedbackToast(retryWord());
+            setTimeout(()=>card.classList.remove('wrong'),450);
+          }
+        }}, o.emoji);
+        cards.appendChild(card);
+      });
+      const sc=stage(
+        h('div',{class:'hint-kana'},'👂 Listen and tap!'),
+        speakerBtn(target,'pulse'),
+        cards
+      );
+      setTimeout(()=>Audio2.speakItem(target),260);
+    }
+    round();
+  };
+}
+
+/* Matching pairs (audio ↔ picture) */
+function actMatch(items){
+  return (done)=>{
+    const pics=shuffle(items), snds=shuffle(items);
+    let matched=0, selSnd=null, firstTry={};
+    items.forEach(it=>firstTry[it.key]=true);
+    const top=h('div',{class:'cards g3'}), bot=h('div',{class:'cards g3'});
+    const picCard={}, sndCard={};
+    pics.forEach(it=>{ const c=h('div',{class:'card',onclick:()=>tryMatch(it)}, it.emoji); picCard[it.key]=c; top.appendChild(c); });
+    snds.forEach(it=>{ const c=h('div',{class:'card',style:'font-size:56px',onclick:()=>{ selSnd=it; Audio2.speakItem(it); [...bot.children].forEach(x=>x.classList.remove('pick')); c.classList.add('pick'); }},'🔊'); sndCard[it.key]=c; bot.appendChild(c); });
+    function tryMatch(picIt){
+      if(!selSnd) return;
+      if(selSnd.key===picIt.key){
+        record(picIt, firstTry[picIt.key]);
+        picCard[picIt.key].classList.add('correct','dim'); sndCard[picIt.key].classList.add('correct','dim');
+        Audio2.speakItem(picIt); matched++; selSnd=null;
+        if(matched>=items.length){ feedbackToast(encourage()); setTimeout(done,700); }
+      } else {
+        firstTry[selSnd.key]=false;
+        picCard[picIt.key].classList.add('wrong'); feedbackToast(retryWord());
+        setTimeout(()=>picCard[picIt.key].classList.remove('wrong'),450);
+      }
+    }
+    stage( h('div',{class:'hint-kana'},'🔊 ↔ 🖼️ Match the sound to the picture!'), top, bot );
+  };
+}
+
+/* Production choice (Track B): picture -> pick correct audio of 3 */
+function actProduction(items){
+  return (done)=>{
+    let i=0;
+    function round(){
+      if(i>=items.length){ done(); return; }
+      const target=items[i];
+      const opts=pickOptions(target,poolForItem(target),3);
+      let answered=false;
+      const btns=h('div',{class:'row'});
+      opts.forEach(o=>{
+        const b=h('button',{class:'card',style:'width:150px;min-height:150px;font-size:56px',onclick:()=>{
+          Audio2.speakItem(o);
+          if(answered&&o.key!==target.key) return;
+          if(o.key===target.key){
+            if(!answered){ answered=true; record(target,true); }
+            b.classList.add('correct'); Audio2.speakItem(target); feedbackToast('🗣️ Now say it!');
+            setTimeout(()=>{ i++; round(); },1100);
+          } else {
+            if(!answered){ answered=true; record(target,false); }
+            b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),450);
+          }
+        }},'🔊');
+        btns.appendChild(b);
+      });
+      stage(
+        h('div',{class:'hint-kana'},'Which sound matches?'),
+        bigEmoji(target),
+        glossNode(target),
+        btns
+      );
+    }
+    round();
+  };
+}
+
+/* New-word intro + immediate tap-check */
+function actIntro(it){
+  return (done)=>{
+    Audio2.speakItem(it); setTimeout(()=>Audio2.speakItem(it),700);
+    let taps=0;
+    const em=h('div',{style:'font-size:clamp(90px,24vh,220px);cursor:pointer',onclick:()=>{ taps++; Audio2.speakItem(it); }}, it.emoji);
+    const next=h('button',{class:'btn primary big',onclick:()=>{ introduceItem(CUR,it.key); SESS.introduced.push(it.key); check(); }},'▶️');
+    stage(
+      h('div',{class:'hint-kana'},'✨ New word!'),
+      em, h('div',{class:'big-kana'},it.kana), romajiNode(it), glossNode(it),
+      h('div',{class:'row'}, speakerBtn(it), next)
+    );
+    function check(){
+      // one immediate tap-check with 3 options (not graded to SRS; encouragement only)
+      const opts=pickOptions(it,poolForItem(it),3);
+      const cards=h('div',{class:'cards g3'});
+      let done2=false;
+      opts.forEach(o=>{
+        const c=h('div',{class:'card',onclick:()=>{
+          if(done2&&o.key!==it.key) return;
+          if(o.key===it.key){ c.classList.add('correct'); Audio2.speakItem(it); feedbackToast(encourage()); done2=true; setTimeout(done,800); }
+          else { c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
+        }}, o.emoji);
+        cards.appendChild(c);
+      });
+      stage( h('div',{class:'hint-kana'},'Which one?'), speakerBtn(it,'pulse'), cards );
+      setTimeout(()=>Audio2.speakItem(it),250);
+    }
+  };
+}
+
+/* Say-it-aloud finale (Track A) */
+function actSayIt(items){
+  return (done)=>{
+    let i=0;
+    function one(){
+      if(i>=items.length){ done(); return; }
+      const it=items[i]; Audio2.speakItem(it);
+      stage(
+        h('div',{class:'hint-kana'},'🗣️ Your turn — say it!'),
+        bigEmoji(it), h('div',{class:'big-kana'},it.kana), romajiNode(it), glossNode(it),
+        h('div',{class:'row'}, speakerBtn(it,'pulse'),
+          h('button',{class:'btn primary big',onclick:()=>{ i++; one(); }},'I did it! 🎉'))
+      );
+    }
+    one();
+  };
+}
+
+/* Phrase of the day (Track B) call-and-response */
+function actPhraseOfDay(it){
+  return (done)=>{
+    introduceItem(CUR,it.key);
+    stage(
+      h('div',{class:'hint-kana'},'📣 Phrase of the day'),
+      h('div',{style:'font-size:110px'},it.emoji),
+      h('div',{class:'gloss'}, it.en),
+      h('button',{class:'btn primary big',onclick:reveal},'🔊 Listen')
+    );
+    function reveal(){
+      Audio2.speakItem(it);
+      stage(
+        h('div',{style:'font-size:96px'},it.emoji),
+        h('div',{class:'big-kana'},it.kana),
+        romajiNode(it),
+        h('div',{class:'gloss'}, it.en),
+        h('div',{class:'hint'},'🗣️ Say it out loud!'),
+        h('div',{class:'row'}, speakerBtn(it,'pulse'),
+          h('button',{class:'btn primary big',onclick:done},'I did it! 🎉'))
+      );
+    }
+  };
+}
+
+/* ===================== BODY FIGURE GAME ===================== */
+const BODY_MAP={ // which svg map to show for a given body word id
+  face:['kao','me','mimi','hana-nose','kuchi','ha','kaminoke'],
+  front:['atama','te','yubi','onaka','ashi','hiza'],
+  back:['senaka']
+};
+function mapForBody(id){ if(BODY_MAP.face.includes(id))return'face'; if(BODY_MAP.back.includes(id))return'back'; return'front'; }
+function bodySVG(map){
+  if(map==='face'){
+    return `<svg viewBox="0 0 300 320">
+      <ellipse cx="150" cy="165" rx="105" ry="120" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+      <path d="M45 120 Q150 -10 255 120 Q210 60 150 58 Q90 60 45 120Z" fill="#6d4c41"/>
+      <circle cx="112" cy="150" r="14" fill="#3e2723"/><circle cx="188" cy="150" r="14" fill="#3e2723"/>
+      <ellipse cx="150" cy="185" rx="12" ry="16" fill="#e69a6b"/>
+      <path d="M118 232 Q150 258 182 232" fill="none" stroke="#b5573a" stroke-width="6" stroke-linecap="round"/>
+      <rect x="132" y="228" width="36" height="12" rx="4" fill="#fff" stroke="#ddd"/>
+      <ellipse cx="42" cy="165" rx="17" ry="26" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+      <ellipse cx="258" cy="165" rx="17" ry="26" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+      <rect class="zone" data-part="kaminoke" x="60" y="20" width="180" height="70"/>
+      <rect class="zone" data-part="mimi" x="12" y="130" width="46" height="72"/>
+      <rect class="zone" data-part="mimi" x="242" y="130" width="46" height="72"/>
+      <rect class="zone" data-part="me" x="86" y="128" width="128" height="46"/>
+      <rect class="zone" data-part="hana-nose" x="126" y="170" width="48" height="40"/>
+      <rect class="zone" data-part="ha" x="128" y="222" width="44" height="20"/>
+      <rect class="zone" data-part="kuchi" x="112" y="240" width="76" height="30"/>
+      <rect class="zone" data-part="kao" x="66" y="196" width="52" height="46"/>
+      <rect class="zone" data-part="kao" x="182" y="196" width="52" height="46"/>
+    </svg>`;
+  }
+  if(map==='back'){
+    return `<svg viewBox="0 0 300 360">
+      <circle cx="150" cy="52" r="42" fill="#6d4c41"/>
+      <rect x="98" y="92" width="104" height="150" rx="34" fill="#8ecae6" stroke="#4b9cc4" stroke-width="3"/>
+      <rect x="112" y="238" width="34" height="110" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+      <rect x="154" y="238" width="34" height="110" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+      <rect x="58" y="104" width="34" height="120" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+      <rect x="208" y="104" width="34" height="120" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+      <rect class="zone" data-part="senaka" x="98" y="96" width="104" height="140"/>
+    </svg>`;
+  }
+  // front full figure
+  return `<svg viewBox="0 0 300 400">
+    <circle cx="150" cy="52" r="44" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+    <path d="M108 40 Q150 2 192 40 Q168 22 150 22 Q132 22 108 40Z" fill="#6d4c41"/>
+    <circle cx="135" cy="52" r="6" fill="#3e2723"/><circle cx="165" cy="52" r="6" fill="#3e2723"/>
+    <path d="M138 70 Q150 80 162 70" fill="none" stroke="#b5573a" stroke-width="4" stroke-linecap="round"/>
+    <rect x="104" y="100" width="92" height="120" rx="30" fill="#8ecae6" stroke="#4b9cc4" stroke-width="3"/>
+    <rect x="58" y="112" width="32" height="120" rx="16" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+    <rect x="210" y="112" width="32" height="120" rx="16" fill="#ffe0b2" stroke="#e0a066" stroke-width="3"/>
+    <circle cx="74" cy="246" r="20" fill="#ffc38a" stroke="#e0a066" stroke-width="3"/>
+    <circle cx="226" cy="246" r="20" fill="#ffc38a" stroke="#e0a066" stroke-width="3"/>
+    <rect x="112" y="220" width="34" height="150" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+    <rect x="154" y="220" width="34" height="150" rx="16" fill="#ffd8a8" stroke="#e0a066" stroke-width="3"/>
+    <ellipse cx="122" cy="378" rx="24" ry="13" fill="#5b6b73"/>
+    <ellipse cx="178" cy="378" rx="24" ry="13" fill="#5b6b73"/>
+    <rect class="zone" data-part="atama" x="106" y="10" width="88" height="82"/>
+    <rect class="zone" data-part="te" x="46" y="228" width="60" height="52"/>
+    <rect class="zone" data-part="te" x="194" y="228" width="60" height="52"/>
+    <rect class="zone" data-part="yubi" x="54" y="266" width="44" height="34"/>
+    <rect class="zone" data-part="yubi" x="202" y="266" width="44" height="34"/>
+    <rect class="zone" data-part="onaka" x="112" y="150" width="76" height="64"/>
+    <rect class="zone" data-part="hiza" x="108" y="292" width="84" height="40"/>
+    <rect class="zone" data-part="ashi" x="104" y="352" width="92" height="42"/>
+  </svg>`;
+}
+function actBody(items){
+  return (done)=>{
+    let i=0;
+    function round(){
+      if(i>=items.length){ done(); return; }
+      const it=items[i]; const map=mapForBody(it.id);
+      let answered=false;
+      const wrap=h('div',{class:'figwrap',html:bodySVG(map)});
+      const sc=stage( h('div',{class:'hint-kana'},'Where is the '+it.en+'?'), speakerBtn(it,'pulse'), wrap );
+      setTimeout(()=>Audio2.speakItem(it),250);
+      wrap.querySelectorAll('.zone').forEach(z=>{
+        z.addEventListener('click',()=>{
+          const part=z.getAttribute('data-part');
+          if(part===it.id){
+            if(!answered){ answered=true; record(it,true); }
+            z.classList.add('hit'); Audio2.speakItem(it); feedbackToast(encourage());
+            setTimeout(()=>{ i++; round(); },850);
+          } else {
+            if(!answered){ answered=true; record(it,false); }
+            z.classList.add('miss'); feedbackToast(retryWord());
+            setTimeout(()=>z.classList.remove('miss'),450);
+          }
+        });
+      });
+    }
+    round();
+  };
+}
+function actBodyIntro(it){
+  return (done)=>{
+    const map=mapForBody(it.id);
+    Audio2.speakItem(it); setTimeout(()=>Audio2.speakItem(it),700);
+    const wrap=h('div',{class:'figwrap',html:bodySVG(map)});
+    stage(
+      h('div',{class:'hint-kana'},'✨ New word!'),
+      h('div',{class:'big-kana'},it.kana), romajiNode(it), glossNode(it),
+      wrap,
+      h('div',{class:'row'}, speakerBtn(it),
+        h('button',{class:'btn primary big',onclick:()=>{ introduceItem(CUR,it.key); SESS.introduced.push(it.key); done(); }},'▶️'))
+    );
+    // glow the correct part
+    wrap.querySelectorAll('.zone').forEach(z=>{ if(z.getAttribute('data-part')===it.id) z.classList.add('glow'); z.addEventListener('click',()=>Audio2.speakItem(it)); });
+  };
+}
+
+/* ===================== KANA BLOCK (Track B) ===================== */
+function masteredKana(p){ const s=new Set(); KANA_LIST.forEach(k=>{ if(isKnownKey(p,k.key)) s.add(k.kana); }); return s; }
+function nextNewKana(p,count){ const out=[]; for(const k of KANA_LIST){ if(out.length>=count) break; if(!isIntroduced(p,k.key)) out.push(k); } return out; }
+function actKanaBlock(p,dueKana){
+  return (done)=>{
+    const steps=[];
+    // review a few due kana (recognition)
+    shuffle(dueKana).slice(0,3).forEach(k=>steps.push(()=>kanaRecognition(k)));
+    // introduce up to 2 new kana (show + trace)
+    nextNewKana(p,2).forEach(k=>steps.push(()=>kanaIntro(k)));
+    // read-the-word if we have enough mastered kana
+    const mk=masteredKana(p);
+    if(mk.size>=3){
+      const readable=DATA.words.filter(w=>{ const chars=[...w.kana]; return chars.length>=2 && chars.every(c=>mk.has(c)); }).map(w=>WORD[w.id]);
+      if(readable.length) steps.push(()=>kanaRead(sample(readable)));
+    }
+    let s=0;
+    function next(){ if(s>=steps.length){ done(); return; } const make=steps[s++]; make()(next); }
+    if(!steps.length){ done(); return; }
+    next();
+
+    function kanaRecognition(k){
+      return (cb=next)=>{
+        const opts=pickOptions(k,KANA_LIST,4,x=>x.kana); let answered=false;
+        const grid=h('div',{class:'row'});
+        opts.forEach(o=>{ const t=h('div',{class:'ktile',onclick:()=>{
+          if(answered&&o.key!==k.key) return;
+          if(o.key===k.key){ if(!answered){answered=true;record(k,true);} t.classList.add('correct'); Audio2.speakItem(k); feedbackToast(encourage()); setTimeout(cb,800); }
+          else { if(!answered){answered=true;record(k,false);} t.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>t.classList.remove('wrong'),450); }
+        }}, o.kana); grid.appendChild(t); });
+        stage( h('div',{class:'hint-kana'},'Which letter do you hear?'), speakerBtn(k,'pulse'), grid );
+        setTimeout(()=>Audio2.speakItem(k),250);
+      };
+    }
+    function kanaIntro(k){
+      return (cb=next)=>{
+        Audio2.speakItem(k); setTimeout(()=>Audio2.speakItem(k),650);
+        stage(
+          h('div',{class:'hint-kana'},'✨ New letter!'),
+          h('div',{style:'font-size:clamp(120px,32vh,260px);font-weight:800'},k.kana),
+          romajiNode(k),
+          h('div',{class:'row'}, speakerBtn(k),
+            h('button',{class:'btn primary big',onclick:()=>{ kanaTrace(k)(cb); }},'✏️ Trace it'))
+        );
+      };
+    }
+    function kanaTrace(k){
+      return (cb=next)=>{
+        introduceItem(CUR,k.key);
+        const size=Math.min(window.innerHeight*0.6, 420);
+        const cv=h('canvas',{width:size,height:size,style:'touch-action:none;background:#fff;border-radius:24px;box-shadow:var(--shadow)'});
+        const ctx=cv.getContext('2d');
+        ctx.fillStyle='#f0e9df'; ctx.font='bold '+(size*0.72)+'px -apple-system,"Hiragino Maru Gothic ProN",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(k.kana,size/2,size/2);
+        ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff8a5b'; ctx.lineWidth=14; ctx.lineCap='round'; ctx.lineJoin='round';
+        let drawing=false;
+        const pos=e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [ (t.clientX-r.left)*(cv.width/r.width), (t.clientY-r.top)*(cv.height/r.height) ]; };
+        const start=e=>{ e.preventDefault(); drawing=true; const [x,y]=pos(e); ctx.beginPath(); ctx.moveTo(x,y); };
+        const move=e=>{ if(!drawing)return; e.preventDefault(); const [x,y]=pos(e); ctx.lineTo(x,y); ctx.stroke(); };
+        const end=()=>{ drawing=false; };
+        cv.addEventListener('touchstart',start,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',end);
+        cv.addEventListener('mousedown',start); cv.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+        stage(
+          h('div',{class:'hint-kana'},'✏️ Trace with your finger'),
+          cv,
+          h('div',{class:'row'}, speakerBtn(k,'small'),
+            h('button',{class:'btn primary big',onclick:()=>{ Audio2.speakItem(k); feedbackToast(encourage()); setTimeout(cb,500); }},'Done! ✓'))
+        );
+        setTimeout(()=>Audio2.speakItem(k),250);
+      };
+    }
+    function kanaRead(w){
+      return (cb=next)=>{
+        const opts=pickOptions(w,Object.values(WORD).filter(x=>!x.isBody),4); let answered=false;
+        const cards=h('div',{class:'cards g4'});
+        opts.forEach(o=>{ const c=h('div',{class:'card',onclick:()=>{
+          if(answered&&o.key!==w.key) return;
+          if(o.key===w.key){ if(!answered){answered=true;record(w,true);} c.classList.add('correct'); Audio2.speakItem(w); feedbackToast('You read it! 🎉'); setTimeout(cb,850); }
+          else { if(!answered){answered=true;record(w,false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
+        }}, o.emoji); cards.appendChild(c); });
+        stage( h('div',{class:'hint-kana'},'👀 Read it — which picture?'), h('div',{class:'big-kana',style:'font-size:clamp(56px,12vh,110px)'},w.kana), cards );
+      };
+    }
+  };
+}
+
+/* ===================== PATTERN BLOCK (Track B) ===================== */
+function patternSlotWords(p,pt){
+  const slot=pt.slot||{}; const posOK=slot.pos||['n']; const unitsOK=slot.units||null;
+  return DATA.words.filter(w=>{
+    if(!posOK.includes(w.pos)) return false;
+    if(unitsOK && !unitsOK.includes(w.unit)) return false;
+    if(w.isBody) return false;
+    return isKnownKey(p,'w:'+w.id) || isIntroduced(p,'w:'+w.id);
+  }).map(w=>WORD[w.id]);
+}
+function buildSentence(pt,word,colorWord){
+  if(pt.id==='akai-noun'){ const cw=colorWord||WORD['aka']; return { kana:(cw.iForm||cw.kana)+word.kana, filler:word }; }
+  const frame=pt.frameKana; return { kana:frame.replace('◯◯',word.kana), filler:word };
+}
+function actPatternBlock(p,duePat){
+  return (done)=>{
+    const unlocked=unlockedPatterns(p);
+    // choose a pattern: prefer an unlocked-but-not-introduced one, else a due one, else random unlocked
+    let pt = unlocked.find(x=>!isIntroduced(p,'pat:'+x.id));
+    let introMode=!!pt;
+    if(!pt){ const duePt=duePat.map(x=>x.ref); pt = duePt[0] || sample(unlocked); }
+    if(!pt){ done(); return; }
+    const words=patternSlotWords(p,pt);
+    if(words.length<3){ done(); return; }
+    if(introMode){ patternReceptive(pt,words,true,()=>{ introduceItem(CUR,'pat:'+pt.id); done(); }); return; }
+    // review: pick a game
+    const game=sample(['receptive','slotfill','build']);
+    if(game==='slotfill') return patternSlotFill(pt,words,done);
+    if(game==='build') return patternBuild(pt,words,done);
+    return patternReceptive(pt,words,false,done);
+  };
+
+  function patternReceptive(pt,words,intro,cb){
+    const colorWord = pt.id==='akai-noun'? sample(pt.colorSlot.map(id=>WORD[id]).filter(Boolean)) : null;
+    const target=sample(words);
+    const sent=buildSentence(pt,target,colorWord);
+    const opts=pickOptions(target,words.length>=4?words:Object.values(WORD).filter(x=>!x.isBody),4);
+    let answered=false;
+    const speak=()=>{ Audio2.prime(); Audio2.speak(cleanSpeak(sent.kana)); };
+    const cards=h('div',{class:'cards g4'});
+    opts.forEach(o=>{ const c=h('div',{class:'card',onclick:()=>{
+      if(answered&&o.key!==target.key) return;
+      if(o.key===target.key){ if(!answered&&!intro){answered=true;record(PAT[pt.id],true);} else answered=true; c.classList.add('correct'); speak(); feedbackToast(encourage()); setTimeout(cb,900); }
+      else { if(!answered&&!intro){answered=true;record(PAT[pt.id],false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
+    }}, o.emoji); cards.appendChild(c); });
+    stage(
+      h('div',{class:'hint-kana'},(intro?'✨ ':'')+'Listen and find'),
+      h('div',{class:'gloss small'}, pt.en),
+      h('button',{class:'speaker pulse',onclick:speak},'🔊'),
+      cards
+    );
+    setTimeout(speak,300);
+  }
+
+  function patternSlotFill(pt,words,cb){
+    const colorWord = pt.id==='akai-noun'? sample(pt.colorSlot.map(id=>WORD[id]).filter(Boolean)) : null;
+    const target=sample(words); const sent=buildSentence(pt,target,colorWord);
+    const frameShown = pt.id==='akai-noun' ? (colorWord.iForm||colorWord.kana)+'◯◯' : pt.frameKana;
+    const opts=pickOptions(target,words,4);
+    let answered=false;
+    const cards=h('div',{class:'cards g4'});
+    opts.forEach(o=>{ const c=h('div',{class:'card',style:'font-size:34px;flex-direction:column',onclick:()=>{
+      if(answered&&o.key!==target.key) return;
+      if(o.key===target.key){ if(!answered){answered=true;record(PAT[pt.id],true);} c.classList.add('correct'); Audio2.speak(cleanSpeak(sent.kana)); feedbackToast(encourage()); setTimeout(cb,900); }
+      else { if(!answered){answered=true;record(PAT[pt.id],false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
+    }}, h('div',{style:'font-size:64px'},o.emoji), h('div',{class:'kana',style:'font-size:26px'},o.kana)); cards.appendChild(c); });
+    stage(
+      h('div',{class:'hint-kana'},'Which word fits?'),
+      h('div',{class:'gloss small'}, pt.en),
+      h('div',{style:'font-size:80px'},target.emoji),
+      h('div',{class:'big-kana',style:'font-size:clamp(40px,8vh,64px);color:var(--muted)'}, frameShown.replace('◯◯','＿＿')),
+      cards
+    );
+  }
+
+  function patternBuild(pt,words,cb){
+    // build-a-sentence: arrange tiles in order. Particles colored.
+    const colorWord = pt.id==='akai-noun'? sample(pt.colorSlot.map(id=>WORD[id]).filter(Boolean)) : null;
+    const target=sample(words);
+    const tokens=tokenize(pt,target,colorWord); // [{t,cls}]
+    const answer=tokens.map(x=>x.t);
+    const slotRow=h('div',{class:'row',style:'min-height:80px;gap:8px;flex-wrap:wrap'});
+    const bank=h('div',{class:'row',style:'gap:10px;flex-wrap:wrap'});
+    let placed=[];
+    const shuffled=shuffle(tokens.map((x,idx)=>({...x,idx})));
+    const tileEls={};
+    shuffled.forEach(tok=>{ const b=h('button',{class:'tile '+(tok.cls||''),onclick:()=>place(tok,b)}, tok.t); tileEls[tok.idx]=b; bank.appendChild(b); });
+    function renderSlots(){ slotRow.innerHTML=''; answer.forEach((_,i)=>{ const filled=placed[i]; slotRow.appendChild(h('span',{class:'slot'}, filled!=null?tokens[filled].t:'＿')); }); }
+    function place(tok,b){ if(b.classList.contains('used'))return; const nextIdx=placed.length; if(tok.idx!==tokensOrderIndex(nextIdx)) { b.classList.add('used'); /* still allow but check order at end */ } placed.push(tok.idx); b.classList.add('used'); renderSlots(); if(placed.length===answer.length) checkDone(); }
+    function tokensOrderIndex(i){ return i; }
+    function checkDone(){
+      const ok = placed.every((idx,i)=>idx===i);
+      if(ok){ record(PAT[pt.id],true); Audio2.speak(cleanSpeak(answer.join(''))); feedbackToast(encourage()); setTimeout(cb,1000); }
+      else { record(PAT[pt.id],false); feedbackToast(retryWord()); // reset
+        placed=[]; Object.values(tileEls).forEach(b=>b.classList.remove('used')); renderSlots(); }
+    }
+    renderSlots();
+    stage(
+      h('div',{class:'hint-kana'},'Build the sentence!'),
+      h('div',{class:'gloss small'}, pt.en),
+      h('div',{style:'font-size:70px'},target.emoji),
+      slotRow, bank,
+      h('button',{class:'btn ghost',style:'min-height:60px;font-size:22px',onclick:()=>{ placed=[]; Object.values(tileEls).forEach(b=>b.classList.remove('used')); renderSlots(); }},'🔁 Start over')
+    );
+  }
+  function tokenize(pt,word,colorWord){
+    // returns ordered tokens with particle coloring
+    if(pt.id==='akai-noun'){ const cw=colorWord||WORD['aka']; return [ {t:(cw.iForm||cw.kana),cls:''}, {t:word.kana,cls:''} ]; }
+    const f=pt.frameKana; const parts=f.split('◯◯'); const before=parts[0]||'', after=parts[1]||'';
+    const toks=[];
+    if(before) splitParticles(before).forEach(x=>toks.push(x));
+    toks.push({t:word.kana,cls:''});
+    if(after) splitParticles(after).forEach(x=>toks.push(x));
+    return toks;
+  }
+  function splitParticles(s){
+    // pull out は / が / を as their own colored tiles; keep the rest as one tile
+    const out=[]; let buf='';
+    for(const ch of s){
+      if(ch==='は'||ch==='が'||ch==='を'){ if(buf){ out.push({t:buf,cls:'p-end'}); buf=''; } out.push({t:ch,cls: ch==='は'?'p-wa':ch==='が'?'p-ga':'p-o'}); }
+      else buf+=ch;
+    }
+    if(buf) out.push({t:buf,cls:'p-end'});
+    return out;
+  }
+}
+
+/* ===================== END OF SESSION ===================== */
+function endSession(){
+  const p=CUR;
+  // streak + garden + stats
+  updateStreak(p);
+  p.garden.growth = (p.garden.growth||0) + 1 + SESS.newlyKnown.length;
+  p.stats.sessions=(p.stats.sessions||0)+1;
+  p.stats.lastSessionDate=todayStr();
+  const newStickers=checkStickers(p);
+  saveProfile(p);
+  // results screen
+  const acc = SESS.total? Math.round(100*SESS.correct/SESS.total):100;
+  const wrap=h('div',{class:'screen'},
+    h('div',{class:'center'},
+      h('div',{class:'celebrate'},'🌟'),
+      h('div',{class:'big-kana'},'Great job!'),
+      h('div',{class:'row'},
+        h('div',{class:'chip',style:'font-size:24px'},'⭐ ',SESS.correct,'/',SESS.total),
+        h('div',{class:'chip',style:'font-size:24px'},'🔥 ',streakLabel(p)),
+        SESS.newlyKnown.length? h('div',{class:'chip',style:'font-size:24px'},'🆕 ',SESS.newlyKnown.length,' new words'):null
+      ),
+      h('div',{class:'panel',style:'width:min(70vw,520px);height:min(34vh,300px)'}, gardenSVG(p)),
+      h('button',{class:'btn primary big',onclick:()=>{ confettiBurst(); screenHome(); }},'🏠 Home')
+    )
+  );
+  mount(wrap);
+  confettiBurst();
+  if(newStickers.length) setTimeout(()=>celebrateStickers(newStickers),700);
+}
+function updateStreak(p){
+  const t=todayStr();
+  if(p.streak.lastDate===t) return;
+  if(!p.streak.lastDate){ p.streak.count=1; }
+  else{
+    const gap=daysBetween(p.streak.lastDate,t);
+    if(gap===1) p.streak.count=(p.streak.count||0)+1;
+    else if(gap===2){ const w=weekId(new Date()); if(p.streak.graceWeek!==w){ p.streak.count=(p.streak.count||0)+1; p.streak.graceWeek=w; } else p.streak.count=1; }
+    else p.streak.count=1;
+  }
+  p.streak.lastDate=t;
+}
+
+/* ===================== STICKERS ===================== */
+function stickerCatalog(){
+  const list=[
+    {id:'w10',emoji:'🥉',label:'10'}, {id:'w25',emoji:'🥈',label:'25'},
+    {id:'w50',emoji:'🥇',label:'50'}, {id:'w100',emoji:'🏆',label:'100'}
+  ];
+  DATA.kanaGroups.forEach(g=>list.push({id:'kana:'+g.id,emoji:'🈁',label:g.name.replace(' row','')}));
+  DATA.patterns.forEach(pt=>list.push({id:'pat:'+pt.id,emoji:'🎏',label:pt.frameKana.replace('◯◯','＿')}));
+  return list;
+}
+function earnedSet(p){ return new Set(p.stickers||[]); }
+function checkStickers(p){
+  const have=earnedSet(p); const got=[];
+  const kw=knownWordCount(p);
+  [['w10',10],['w25',25],['w50',50],['w100',100]].forEach(([id,n])=>{ if(kw>=n && !have.has(id)){ p.stickers.push(id); got.push(id); }});
+  DATA.kanaGroups.forEach(g=>{ const all=g.kana.every(k=>isKnownKey(p,'k:'+k.k)); if(all && !have.has('kana:'+g.id)){ p.stickers.push('kana:'+g.id); got.push('kana:'+g.id); }});
+  DATA.patterns.forEach(pt=>{ if(isKnownKey(p,'pat:'+pt.id) && !have.has('pat:'+pt.id)){ p.stickers.push('pat:'+pt.id); got.push('pat:'+pt.id); }});
+  return got;
+}
+function celebrateStickers(ids){
+  const cat=stickerCatalog(); const items=ids.map(id=>cat.find(c=>c.id===id)).filter(Boolean);
+  const ov=h('div',{class:'overlay',onclick:e=>{ if(e.target===ov) ov.remove(); }},
+    h('div',{class:'sheet',style:'text-align:center;max-width:520px'},
+      h('div',{class:'hint-kana'},'New sticker! 🎉'),
+      h('div',{class:'row',style:'margin:14px 0'}, items.map(it=>h('div',{class:'sticker',style:'animation:pop .5s'}, h('div',{style:'font-size:52px'},it.emoji), h('small',{},it.label)))),
+      h('button',{class:'btn primary',onclick:()=>ov.remove()},'Yay!')
+    ));
+  document.body.appendChild(ov); confettiBurst();
+}
+function screenStickers(){
+  const p=CUR; const cat=stickerCatalog(); const have=earnedSet(p);
+  const grid=h('div',{class:'row',style:'gap:12px;align-content:flex-start;overflow:auto;max-height:70vh'});
+  cat.forEach(c=>{ grid.appendChild(h('div',{class:'sticker'+(have.has(c.id)?'':' locked')}, h('div',{style:'font-size:44px'}, have.has(c.id)?c.emoji:'❓'), h('small',{},c.label))); });
+  mount(h('div',{class:'screen'},
+    gearNode(),
+    h('div',{class:'center',style:'justify-content:flex-start;padding-top:20px'},
+      h('div',{class:'hint-kana'},'🏅 Sticker Book  ('+have.size+'/'+cat.length+')'),
+      grid,
+      h('button',{class:'btn primary big',onclick:screenHome},'🏠 Back')
+    )
+  ));
+}
+
+/* ===================== PARENT GATE + DASHBOARD ===================== */
+function gearNode(){
+  const fill=h('div',{class:'fill'});
+  const g=h('div',{class:'gear'}, fill, h('div',{},'⚙️'));
+  let timer=null,start=0,raf=null;
+  const begin=e=>{ e.preventDefault(); start=Date.now();
+    const tick=()=>{ const el=Date.now()-start; fill.style.setProperty('--p',(Math.min(1,el/3000)*360)+'deg'); if(el<3000) raf=requestAnimationFrame(tick); };
+    tick();
+    timer=setTimeout(()=>{ cancel(); openDashboard(); },3000);
+  };
+  const cancel=()=>{ clearTimeout(timer); cancelAnimationFrame(raf); fill.style.setProperty('--p','0deg'); };
+  g.addEventListener('pointerdown',begin); g.addEventListener('pointerup',cancel); g.addEventListener('pointerleave',cancel); g.addEventListener('pointercancel',cancel);
+  return g;
+}
+function openDashboard(){ const p=CUR||loadProfile('A')||loadProfile('B'); if(!p){ return; } screenDashboard(p); }
+
+function screenDashboard(p){
+  const kw=knownWordCount(p);
+  const days=daysSinceStart(p);
+  // per-unit known
+  const unitRows=DATA.units.map(u=>{ const ws=WORDS_BY_UNIT[u.id]; const k=ws.filter(it=>isKnownKey(p,it.key)).length;
+    return h('tr',{}, h('td',{}, u.emoji+' '+u.en), h('td',{class:'num'}, k+'/'+ws.length),
+      h('td',{style:'width:40%'}, h('div',{class:'bar'}, h('i',{style:'width:'+Math.round(100*k/ws.length)+'%'})))); });
+  // kana grid
+  const kgrid=h('div',{class:'grid46'});
+  KANA_LIST.forEach(k=>{ const s=p.items['k:'+k.kana]; const cls=!s||!s.introducedDate?'':(s.box>=3?'known':'seen'); kgrid.appendChild(h('div',{class:'kcell '+cls},k.kana)); });
+  // patterns
+  const unl=unlockedPatterns(p);
+  const patRows=DATA.patterns.map(pt=>{ const on=patternUnlocked(p,pt); const known=isKnownKey(p,'pat:'+pt.id);
+    return h('span',{class:'pill',style:on?'':'opacity:.45'}, (known?'✅ ':on?'🔓 ':'🔒 ')+pt.frameKana); });
+  // next unlocks
+  const nextUnlocks=[];
+  if(p.track==='B' && !hiraganaUnlocked(p)) nextUnlocks.push('Hiragana: day '+days+'/30 · '+kw+'/60 words');
+  DATA.patterns.forEach(pt=>{ if(!patternUnlocked(p,pt)){ let s=pt.frameKana+' — '+kw+'/'+pt.unlock.knownWords+' words'; if(pt.unlock.unitStarted&&!unitStarted(p,pt.unlock.unitStarted)) s+=' + start '+pt.unlock.unitStarted; nextUnlocks.push(s); } });
+  // weekly family phrase (WITH romaji - parent only)
+  const wk=Math.min(8,Math.max(1,Math.floor(days/7)+1));
+  const wkPhrases=DATA.phrases.filter(ph=>ph.week===wk); const fam=wkPhrases.length?sample(wkPhrases):DATA.phrases[0];
+  const famCard=h('div',{class:'panel',style:'text-align:center'},
+    h('div',{class:'small'},'This week\'s family phrase (week '+wk+')'),
+    h('div',{style:'font-size:44px'},fam.emoji),
+    h('div',{class:'big-kana',style:'font-size:40px'},fam.kana),
+    h('div',{style:'font-size:20px;color:var(--muted);font-weight:800'},fam.romaji),
+    h('div',{class:'small'},'"'+fam.en+'" · '+fam.when)
+  );
+  // settings
+  const npd=p.settings.newPerDay;
+  const npdRow=h('div',{class:'seg'}, [2,3,4,5,6].map(n=>h('button',{class:n===npd?'on':'',onclick:()=>{ p.settings.newPerDay=n; saveProfile(p); screenDashboard(p); }},n)));
+  const slRow=h('div',{class:'seg'}, ['short','normal','long'].map(s=>h('button',{class:s===p.settings.sessionLen?'on':'',onclick:()=>{ p.settings.sessionLen=s; saveProfile(p); screenDashboard(p); }}, s==='short'?'Short':s==='long'?'Long':'Normal')));
+  const romOn=p.settings.romaji!==false;
+  const romRow=h('div',{class:'seg'}, [[true,'On'],[false,'Off']].map(([v,l])=>h('button',{class:v===romOn?'on':'',onclick:()=>{ p.settings.romaji=v; saveProfile(p); if(CUR&&CUR.id===p.id) CUR=loadProfile(p.id); screenDashboard(p); }}, l)));
+
+  const otherId = p.id==='A'?'B':'A'; const other=loadProfile(otherId);
+  const sheet=h('div',{class:'sheet dash'},
+    h('div',{class:'row',style:'justify-content:space-between'},
+      h('h2',{}, p.avatar+' '+(p.track==='A'?'Track A · age 5':'Track B · age 8')),
+      h('div',{},
+        other? h('button',{class:'btn ghost',style:'min-height:44px;font-size:16px;margin-right:8px',onclick:()=>screenDashboard(other)}, other.avatar+' switch'):null,
+        h('button',{class:'btn ghost',style:'min-height:44px;font-size:16px',onclick:()=>{ document.querySelector('.overlay').remove(); }},'✕ close'))
+    ),
+    h('div',{class:'row',style:'justify-content:flex-start;gap:18px'},
+      h('div',{}, h('div',{class:'num',style:'font-size:34px'},kw), h('div',{class:'small'},'known words (box 3+)')),
+      h('div',{}, h('div',{class:'num',style:'font-size:34px'},p.streak.count||0), h('div',{class:'small'},'day streak')),
+      h('div',{}, h('div',{class:'num',style:'font-size:34px'},p.stats.sessions||0), h('div',{class:'small'},'sessions')),
+      h('div',{}, h('div',{class:'num',style:'font-size:34px'},'day '+days), h('div',{class:'small'},'since start'))
+    ),
+    famCard,
+    h('h3',{},'Known words by unit'),
+    h('table',{}, unitRows),
+    p.track==='B'? h('div',{}, h('h3',{},'Hiragana '+(hiraganaUnlocked(p)?'(unlocked)':'(locked)')), kgrid):null,
+    p.track==='B'? h('div',{}, h('h3',{},'Patterns'), h('div',{class:'chips'},patRows)):null,
+    nextUnlocks.length? h('div',{}, h('h3',{},'Next unlocks'), h('ul',{style:'margin:0;padding-left:18px;font-size:14px;color:var(--muted)'}, nextUnlocks.map(s=>h('li',{style:'margin:3px 0'},s)))):null,
+    h('h3',{},'Settings'),
+    h('div',{class:'row',style:'justify-content:flex-start;gap:22px;flex-wrap:wrap'},
+      h('div',{}, h('div',{class:'small'},'New items / day'), npdRow),
+      h('div',{}, h('div',{class:'small'},'Session length'), slRow),
+      h('div',{}, h('div',{class:'small'},'Romaji (sound-it-out under kana)'), romRow)
+    ),
+    h('div',{class:'row',style:'justify-content:flex-start;gap:10px;margin-top:8px'},
+      h('button',{class:'btn ghost',style:'min-height:50px;font-size:16px',onclick:()=>{ if(confirm('Reset kana intro? Kana will be re-taught from the start (words are kept).')){ resetKana(p); screenDashboard(p);} }},'↺ Reset kana intro'),
+      h('button',{class:'btn ghost',style:'min-height:50px;font-size:16px',onclick:()=>exportProgress(p)},'⬇️ Export'),
+      h('button',{class:'btn ghost',style:'min-height:50px;font-size:16px',onclick:()=>importDialog(p)},'⬆️ Import')
+    ),
+    h('div',{class:'small',style:'margin-top:10px'},'“Known” counts only words recalled after a gap (box 3+). “Seen” is never counted.')
+  );
+  const ov=h('div',{class:'overlay',onclick:e=>{ if(e.target===ov) ov.remove(); }}, sheet);
+  const ex=document.querySelector('.overlay'); if(ex) ex.remove();
+  document.body.appendChild(ov);
+}
+function resetKana(p){ KANA_LIST.forEach(k=>{ delete p.items['k:'+k.kana]; }); saveProfile(p); }
+function exportProgress(p){
+  const data=JSON.stringify(p);
+  try{ const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob);
+    const a=h('a',{href:url,download:'nihongo-'+p.id+'-'+todayStr()+'.json'}); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){}
+  // also show copyable text (iOS-friendly)
+  const ov=h('div',{class:'overlay',onclick:e=>{ if(e.target===ov) ov.remove(); }},
+    h('div',{class:'sheet',style:'max-width:600px'},
+      h('h3',{},'Backup (copy this text)'),
+      h('textarea',{readonly:true,onclick:function(){ this.select(); }}, data),
+      h('button',{class:'btn primary',style:'margin-top:10px',onclick:()=>ov.remove()},'Done')
+    ));
+  document.body.appendChild(ov);
+}
+function importDialog(p){
+  const ta=h('textarea',{placeholder:'Paste backup JSON here'});
+  const ov=h('div',{class:'overlay',onclick:e=>{ if(e.target===ov) ov.remove(); }},
+    h('div',{class:'sheet',style:'max-width:600px'},
+      h('h3',{},'Import backup for '+p.id),
+      ta,
+      h('div',{class:'row',style:'justify-content:flex-start;margin-top:10px'},
+        h('button',{class:'btn primary',onclick:()=>{ try{ const obj=JSON.parse(ta.value); if(!obj||!obj.items){ alert('Not a valid backup.'); return; } obj.id=p.id; obj.track=p.track; obj.age=p.age; saveProfile(migrate(obj)); alert('Imported!'); ov.remove(); if(CUR&&CUR.id===p.id){ CUR=loadProfile(p.id); setAccent(CUR);} openDashboard(); }catch(err){ alert('Could not read that backup.'); } }},'Import'),
+        h('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel'))
+    ));
+  document.body.appendChild(ov);
+}
+
+/* ===================== BOOT ===================== */
+window.addEventListener('load',()=>{ screenSplash(); });
+document.addEventListener('gesturestart',e=>e.preventDefault()); // block pinch-zoom
+if('serviceWorker' in navigator) window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+</script>
+</body>
+</html>

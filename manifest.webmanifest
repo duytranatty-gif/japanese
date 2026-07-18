@@ -1,0 +1,16 @@
+{
+  "name": "Japanese for Kids",
+  "short_name": "Japanese",
+  "description": "Learn Japanese through games — for English-speaking kids. Words, phrases, hiragana and simple sentences, spaced-repetition, fully offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#fff7ef",
+  "theme_color": "#ffb703",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
