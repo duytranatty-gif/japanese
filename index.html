@@ -1129,8 +1129,8 @@ function actIntro(it){
       let done2=false;
       opts.forEach(o=>{
         const c=h('div',{class:'card',onclick:()=>{
-          if(done2&&o.key!==it.key) return;
-          if(o.key===it.key){ c.classList.add('correct'); Audio2.speakItem(it); feedbackToast(encourage()); done2=true; setTimeout(done,800); }
+          if(done2) return;                  // idempotent: ignore extra taps once solved
+          if(o.key===it.key){ done2=true; c.classList.add('correct'); Audio2.speakItem(it); feedbackToast(encourage()); setTimeout(done,800); }
           else { c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
         }}, picEl(o));
         cards.appendChild(c);
@@ -1566,7 +1566,7 @@ function learnBlock(){
   const acts=[];
   block.forEach(it=> acts.push(actIntro(it)));   // meet each word (intro + tap-check)
   acts.push(actBlockCheck(block));               // then check the 3 before moving on
-  runActs(acts, ()=>{ LM.learned+=block.length; offerNextBlock(block); });
+  runActs(acts, ()=>{ if(!LM) return; LM.learned+=block.length; offerNextBlock(block); });
 }
 function runActs(acts,onDone){
   SESS.acts=acts; let i=0;
@@ -1588,7 +1588,7 @@ function actBlockCheck(block){
       const target=seq[i]; const opts=optsForCheck(target,block); let answered=false;
       const cards=h('div',{class:'cards g4'});
       opts.forEach(o=>{ const card=h('div',{class:'card',onclick:()=>{
-        if(answered&&o.key!==target.key) return;
+        if(answered) return;                 // idempotent: ignore extra taps once solved
         if(o.key===target.key){ answered=true; card.classList.add('correct'); Audio2.speakItem(target); feedbackToast(encourage()); setTimeout(()=>{ i++; round(); },800); }
         else { card.classList.add('wrong'); Audio2.speak(cleanSpeak('もういっかい')); feedbackToast(retryWord()); setTimeout(()=>card.classList.remove('wrong'),450); }
       }}, picEl(o)); cards.appendChild(card); });
