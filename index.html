@@ -81,6 +81,9 @@ body{
 .card.dim{opacity:.28; pointer-events:none;}
 .card.pick{border-color:var(--accent);}
 .card .lbl{position:absolute;bottom:6px;font-size:20px;color:var(--muted);font-weight:800}
+.picemoji{line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.picsvg{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;vertical-align:middle}
+.picsvg svg{width:100%;height:100%;display:block}
 
 /* Kana tiles */
 .ktile{background:var(--card);border-radius:22px;box-shadow:var(--shadow);min-height:120px;min-width:120px;
@@ -581,7 +584,7 @@ const Audio2={
   speak(text,opts){ if(!this.supported||!text) return;
     try{ speechSynthesis.cancel();
       const u=new SpeechSynthesisUtterance(text);
-      u.lang='ja-JP'; u.rate=(opts&&opts.rate)||0.85; u.pitch=(opts&&opts.pitch)||1.15;
+      u.lang='ja-JP'; u.rate=(opts&&opts.rate)||0.72; u.pitch=(opts&&opts.pitch)||1.12;
       if(this.voice) u.voice=this.voice;
       speechSynthesis.speak(u);
     }catch(e){}
@@ -590,7 +593,7 @@ const Audio2={
 };
 
 /* ===================== STORAGE ===================== */
-const SLOTS=[{id:'A',track:'A',age:5},{id:'B',track:'B',age:8}];
+const SLOTS=[{id:'A'},{id:'B'}];   // two players, same full experience (no age split)
 const AVATARS=[
   {e:'🦊',c:'#ff7a45'},{e:'🐼',c:'#5c6bc0'},{e:'🐱',c:'#f5a524'},{e:'🐰',c:'#ec5f8a'},
   {e:'🐻',c:'#a1745c'},{e:'🐧',c:'#22a6e0'},{e:'🦁',c:'#e8a800'},{e:'🐨',c:'#2aa79b'},
@@ -600,11 +603,11 @@ const SCHEMA=1;
 const KEY=id=>'jfk:'+id;
 function loadProfile(id){ try{ const raw=localStorage.getItem(KEY(id)); if(!raw) return null; const p=JSON.parse(raw); return migrate(p);}catch(e){ return null; } }
 function saveProfile(p){ if(!p) return; try{ localStorage.setItem(KEY(p.id),JSON.stringify(p)); }catch(e){} }
-function migrate(p){ if(!p.schema) p.schema=1; if(!p.items) p.items={}; if(!p.settings) p.settings={newPerDay:p.track==='A'?4:5,sessionLen:'normal'}; if(!p.streak) p.streak={count:0,lastDate:null,graceWeek:null}; if(!p.garden) p.garden={growth:0}; if(!p.stickers) p.stickers=[]; if(!p.stats) p.stats={sessions:0,lastSessionDate:null}; if(!p.flags) p.flags={}; return p; }
+function migrate(p){ if(!p.schema) p.schema=1; if(!p.items) p.items={}; if(!p.settings) p.settings={newPerDay:4,sessionLen:'normal',romaji:true}; if(!p.streak) p.streak={count:0,lastDate:null,graceWeek:null}; if(!p.garden) p.garden={growth:0}; if(!p.stickers) p.stickers=[]; if(!p.stats) p.stats={sessions:0,lastSessionDate:null}; if(!p.flags) p.flags={}; return p; }
 function newProfile(slot,av){
-  return { schema:SCHEMA, id:slot.id, track:slot.track, age:slot.age, avatar:av.e, color:av.c,
+  return { schema:SCHEMA, id:slot.id, avatar:av.e, color:av.c,
     createdDate:todayStr(), items:{}, streak:{count:0,lastDate:null,graceWeek:null}, garden:{growth:0},
-    stickers:[], settings:{newPerDay:slot.track==='A'?4:5, sessionLen:'normal', romaji:true}, stats:{sessions:0,lastSessionDate:null}, flags:{} };
+    stickers:[], settings:{newPerDay:4, sessionLen:'normal', romaji:true}, stats:{sessions:0,lastSessionDate:null}, flags:{} };
 }
 
 /* ===================== SRS ===================== */
@@ -642,9 +645,9 @@ function unitOpen(p,u){ if(u.order===1) return true; const prev=DATA.units.find(
 function daysSinceStart(p){ return daysBetween(p.createdDate,todayStr()); }
 
 /* Unlocks */
-function hiraganaUnlocked(p){ return p.track==='B' && (daysSinceStart(p)>=30 || knownWordCount(p)>=60); }
+function hiraganaUnlocked(p){ return daysSinceStart(p)>=30 || knownWordCount(p)>=60; }
 function unitStarted(p,uid){ return (WORDS_BY_UNIT[uid]||[]).some(it=>isIntroduced(p,it.key)); }
-function patternUnlocked(p,pt){ if(p.track!=='B') return false; const u=pt.unlock||{};
+function patternUnlocked(p,pt){ const u=pt.unlock||{};
   if(knownWordCount(p) < (u.knownWords||0)) return false;
   if(u.unitStarted && !unitStarted(p,u.unitStarted)) return false; return true; }
 function unlockedPatterns(p){ return DATA.patterns.filter(pt=>patternUnlocked(p,pt)); }
@@ -653,7 +656,7 @@ function unlockedPatterns(p){ return DATA.patterns.filter(pt=>patternUnlocked(p,
 function introducedTodayCount(p){ const t=todayStr(); let n=0; for(const k in p.items) if(p.items[k].introducedDate===t) n++; return n; }
 function pickNewWords(p,backlog){
   if(backlog>=15) return [];                    // post-holiday backlog pause
-  const cap=p.settings.newPerDay||(p.track==='A'?4:5);
+  const cap=p.settings.newPerDay||4;
   let slots=Math.max(0,cap-introducedTodayCount(p));
   if(slots<=0) return [];
   const cands=[];
@@ -724,12 +727,12 @@ function screenProfiles(firstRun){
     if(prof) return h('button',{class:'btn',style:'flex-direction:column;width:min(38vw,340px);height:min(52vh,380px);gap:10px;background:'+prof.color+';color:#fff',
       onclick:()=>enterProfile(prof.id)},
       h('div',{style:'font-size:120px'},prof.avatar),
-      h('div',{class:'kana',style:'font-size:30px'},'Age '+slot.age+(slot.track==='B'?' • reads kana':''))
+      h('div',{class:'kana',style:'font-size:28px'},'▶️ Play')
     );
     return h('button',{class:'btn ghost',style:'flex-direction:column;width:min(38vw,340px);height:min(52vh,380px);gap:12px',
       onclick:()=>screenAvatar(slot)},
       h('div',{style:'font-size:96px;opacity:.5'},'➕'),
-      h('div',{class:'hint-kana'},'Age '+slot.age)
+      h('div',{class:'hint-kana'},'New player')
     );
   };
   const s=h('div',{class:'screen'},
@@ -916,37 +919,27 @@ function composeSession(p){
   const warm=yesterdayItems(p);
   if(warm.length) acts.push(actWarmup(warm));
 
-  if(p.track==='A'){
-    const tap=shuffle(dueWordPh).slice(0,Math.round(5*m));
-    if(tap.length) acts.push(actTap(tap));
-    const matchPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,3);
-    if(matchPool.length>=3) acts.push(actMatch(matchPool.slice(0,3)));
-    if(dueBody.length) acts.push(actBody(shuffle(dueBody).slice(0,Math.round(4*m))));
-    // new words
-    const nw=pickNewWords(p,backlog);
-    nw.forEach(it=> acts.push(it.isBody?actBodyIntro(it):actIntro(it)));
-    // new phrase (folded)
-    const ph=pickNewPhrase(p); if(ph && nw.length<(p.settings.newPerDay)) acts.push(actIntro(ph));
-    // say-it finale
-    const sayItems = (nw.length?nw:shuffle(dueWordPh).slice(0,2)).slice(0,2);
-    if(sayItems.length) acts.push(actSayIt(sayItems));
-  } else {
-    const tap=shuffle(dueWordPh).slice(0,Math.round(5*m));
-    if(tap.length) acts.push(actTap(tap));
-    const prodPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,Math.round(4*m));
-    if(prodPool.length) acts.push(actProduction(prodPool));
-    if(dueBody.length) acts.push(actBody(shuffle(dueBody).slice(0,Math.round(4*m))));
-    // kana block (month 2+)
-    if(hiraganaUnlocked(p)) acts.push(actKanaBlock(p,dueKana));
-    // patterns
-    if(p.track==='B' && unlockedPatterns(p).length) acts.push(actPatternBlock(p,duePat));
-    // new words
-    const nw=pickNewWords(p,backlog);
-    nw.forEach(it=> acts.push(it.isBody?actBodyIntro(it):actIntro(it)));
-    // phrase of the day
-    const ph=pickNewPhrase(p) || sample(shuffle(dueWordPh.filter(x=>x.type==='phrase')).concat([null]));
-    if(ph) acts.push(actPhraseOfDay(ph));
-  }
+  // One unified session for everyone — difficulty paces itself via the unlocks
+  // (hiragana/patterns appear only once the child has made enough progress),
+  // never via a chosen age.
+  const tap=shuffle(dueWordPh).slice(0,Math.round(5*m));
+  if(tap.length) acts.push(actTap(tap));
+  const prodPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,Math.round(4*m));
+  if(prodPool.length) acts.push(actProduction(prodPool));
+  const matchPool=shuffle(dueWordPh.filter(it=>it.type==='word')).slice(0,3);
+  if(matchPool.length>=3) acts.push(actMatch(matchPool.slice(0,3)));
+  if(dueBody.length) acts.push(actBody(shuffle(dueBody).slice(0,Math.round(4*m))));
+  if(hiraganaUnlocked(p)) acts.push(actKanaBlock(p,dueKana));
+  if(unlockedPatterns(p).length) acts.push(actPatternBlock(p,duePat));
+  // new words
+  const nw=pickNewWords(p,backlog);
+  nw.forEach(it=> acts.push(it.isBody?actBodyIntro(it):actIntro(it)));
+  // phrase of the day
+  const ph=pickNewPhrase(p) || sample(shuffle(dueWordPh.filter(x=>x.type==='phrase')).concat([null]));
+  if(ph) acts.push(actPhraseOfDay(ph));
+  // say-it finale
+  const sayItems=(nw.length?nw:shuffle(dueWordPh.filter(x=>x.type==='word')).slice(0,2)).slice(0,2);
+  if(sayItems.length) acts.push(actSayIt(sayItems));
   if(acts.length<=1){ // nothing due & nothing new -> gentle practice
     const anyKnown=Object.values(REG).filter(it=>(it.type==='word')&&isIntroduced(p,it.key));
     const practice=shuffle(anyKnown).slice(0,4);
@@ -958,7 +951,22 @@ function composeSession(p){
 /* ===================== GAMES ===================== */
 /* helper: speaker button */
 function speakerBtn(it,cls){ const b=h('button',{class:'speaker '+(cls||''),onclick:()=>{ Audio2.prime(); Audio2.speakItem(it); }},'🔊'); return b; }
-function bigEmoji(it,size){ return h('div',{style:'font-size:'+(size||'clamp(90px,22vh,190px)')},it.emoji); }
+/* Hand-drawn SVG pictures for words whose emoji is wrong/misleading.
+   Anything not listed falls back to its (accurate) emoji. Sized in `em` so it
+   tracks the surrounding font-size exactly like an emoji glyph would. */
+const PICS={
+  tsukue: '<svg viewBox="0 0 100 100"><rect x="6" y="34" width="88" height="6" rx="3" fill="#e3ab6e"/><rect x="8" y="40" width="84" height="8" rx="2" fill="#d69a5c"/><rect x="15" y="48" width="9" height="39" rx="2" fill="#b97e42"/><rect x="60" y="48" width="26" height="39" rx="3" fill="#c98d4e"/><rect x="65" y="56" width="16" height="4" rx="2" fill="#8a5a2b"/><rect x="65" y="67" width="16" height="4" rx="2" fill="#8a5a2b"/></svg>',
+  taoru: '<svg viewBox="0 0 100 100"><rect x="16" y="24" width="8" height="11" rx="2" fill="#9aa7b2"/><rect x="76" y="24" width="8" height="11" rx="2" fill="#9aa7b2"/><rect x="18" y="26" width="64" height="6" rx="3" fill="#b7c2cc"/><rect x="28" y="30" width="44" height="53" rx="5" fill="#5cc0e0"/><rect x="28" y="41" width="44" height="5" fill="#eaf7fc"/><rect x="28" y="65" width="44" height="5" fill="#eaf7fc"/></svg>',
+  'nori-glue': '<svg viewBox="0 0 100 100"><rect x="38" y="15" width="24" height="18" rx="4" fill="#8e5bc8"/><rect x="36" y="31" width="28" height="54" rx="5" fill="#f3ecd8"/><rect x="36" y="46" width="28" height="18" fill="#e5533c"/><rect x="43" y="51" width="14" height="4" rx="2" fill="#fff" opacity=".85"/><rect x="43" y="58" width="10" height="3" rx="1.5" fill="#fff" opacity=".7"/></svg>',
+  buranko: '<svg viewBox="0 0 100 100"><rect x="14" y="19" width="72" height="6" rx="3" fill="#8a5a2b"/><rect x="16" y="22" width="5" height="61" rx="2" fill="#a5702f"/><rect x="79" y="22" width="5" height="61" rx="2" fill="#a5702f"/><rect x="38" y="25" width="3.5" height="44" rx="1.5" fill="#caa25f"/><rect x="59" y="25" width="3.5" height="44" rx="1.5" fill="#caa25f"/><rect x="30" y="68" width="40" height="9" rx="3" fill="#e2584b"/></svg>',
+  burokku: '<svg viewBox="0 0 100 100"><rect x="22" y="54" width="27" height="27" rx="4" fill="#e8524a"/><rect x="51" y="54" width="27" height="27" rx="4" fill="#3aa0e0"/><rect x="36" y="26" width="27" height="27" rx="4" fill="#f4c430"/><text x="35.5" y="75" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">A</text><text x="64.5" y="75" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">B</text><text x="49.5" y="47" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">C</text></svg>'
+};
+function picEl(it,cls){
+  const svg=it&&PICS[it.id];
+  if(svg) return h('span',{class:'picsvg'+(cls?' '+cls:''),html:svg});
+  return h('span',{class:'picemoji'+(cls?' '+cls:'')}, it?it.emoji:'');
+}
+function bigEmoji(it,size){ return h('div',{class:'bigpic',style:'font-size:'+(size||'clamp(90px,22vh,190px)')}, picEl(it)); }
 function glossOf(it){ return (it && (it.type==='word'||it.type==='phrase')) ? (it.en||'') : ''; }
 function glossNode(it,cls){ const g=glossOf(it); return g? h('div',{class:'gloss'+(cls?' '+cls:'')}, g) : null; }
 function romajiOn(){ return !!(CUR && CUR.settings && CUR.settings.romaji!==false); }
@@ -1015,7 +1023,7 @@ function actTap(items){
             card.classList.add('wrong'); Audio2.speak(cleanSpeak('もういっかい')); feedbackToast(retryWord());
             setTimeout(()=>card.classList.remove('wrong'),450);
           }
-        }}, o.emoji);
+        }}, picEl(o));
         cards.appendChild(card);
       });
       const sc=stage(
@@ -1037,7 +1045,7 @@ function actMatch(items){
     items.forEach(it=>firstTry[it.key]=true);
     const top=h('div',{class:'cards g3'}), bot=h('div',{class:'cards g3'});
     const picCard={}, sndCard={};
-    pics.forEach(it=>{ const c=h('div',{class:'card',onclick:()=>tryMatch(it)}, it.emoji); picCard[it.key]=c; top.appendChild(c); });
+    pics.forEach(it=>{ const c=h('div',{class:'card',onclick:()=>tryMatch(it)}, picEl(it)); picCard[it.key]=c; top.appendChild(c); });
     snds.forEach(it=>{ const c=h('div',{class:'card',style:'font-size:56px',onclick:()=>{ selSnd=it; Audio2.speakItem(it); [...bot.children].forEach(x=>x.classList.remove('pick')); c.classList.add('pick'); }},'🔊'); sndCard[it.key]=c; bot.appendChild(c); });
     function tryMatch(picIt){
       if(!selSnd) return;
@@ -1097,7 +1105,7 @@ function actIntro(it){
   return (done)=>{
     Audio2.speakItem(it); setTimeout(()=>Audio2.speakItem(it),700);
     let taps=0;
-    const em=h('div',{style:'font-size:clamp(90px,24vh,220px);cursor:pointer',onclick:()=>{ taps++; Audio2.speakItem(it); }}, it.emoji);
+    const em=h('div',{class:'bigpic',style:'font-size:clamp(90px,24vh,220px);cursor:pointer',onclick:()=>{ taps++; Audio2.speakItem(it); }}, picEl(it));
     const next=h('button',{class:'btn primary big',onclick:()=>{ introduceItem(CUR,it.key); SESS.introduced.push(it.key); check(); }},'▶️');
     stage(
       h('div',{class:'hint-kana'},'✨ New word!'),
@@ -1114,7 +1122,7 @@ function actIntro(it){
           if(done2&&o.key!==it.key) return;
           if(o.key===it.key){ c.classList.add('correct'); Audio2.speakItem(it); feedbackToast(encourage()); done2=true; setTimeout(done,800); }
           else { c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
-        }}, o.emoji);
+        }}, picEl(o));
         cards.appendChild(c);
       });
       stage( h('div',{class:'hint-kana'},'Which one?'), speakerBtn(it,'pulse'), cards );
@@ -1147,14 +1155,14 @@ function actPhraseOfDay(it){
     introduceItem(CUR,it.key);
     stage(
       h('div',{class:'hint-kana'},'📣 Phrase of the day'),
-      h('div',{style:'font-size:110px'},it.emoji),
+      h('div',{class:'bigpic',style:'font-size:110px'},picEl(it)),
       h('div',{class:'gloss'}, it.en),
       h('button',{class:'btn primary big',onclick:reveal},'🔊 Listen')
     );
     function reveal(){
       Audio2.speakItem(it);
       stage(
-        h('div',{style:'font-size:96px'},it.emoji),
+        h('div',{class:'bigpic',style:'font-size:96px'},picEl(it)),
         h('div',{class:'big-kana'},it.kana),
         romajiNode(it),
         h('div',{class:'gloss'}, it.en),
@@ -1355,7 +1363,7 @@ function actKanaBlock(p,dueKana){
           if(answered&&o.key!==w.key) return;
           if(o.key===w.key){ if(!answered){answered=true;record(w,true);} c.classList.add('correct'); Audio2.speakItem(w); feedbackToast('You read it! 🎉'); setTimeout(cb,850); }
           else { if(!answered){answered=true;record(w,false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
-        }}, o.emoji); cards.appendChild(c); });
+        }}, picEl(o)); cards.appendChild(c); });
         stage( h('div',{class:'hint-kana'},'👀 Read it — which picture?'), h('div',{class:'big-kana',style:'font-size:clamp(56px,12vh,110px)'},w.kana), cards );
       };
     }
@@ -1406,7 +1414,7 @@ function actPatternBlock(p,duePat){
       if(answered&&o.key!==target.key) return;
       if(o.key===target.key){ if(!answered&&!intro){answered=true;record(PAT[pt.id],true);} else answered=true; c.classList.add('correct'); speak(); feedbackToast(encourage()); setTimeout(cb,900); }
       else { if(!answered&&!intro){answered=true;record(PAT[pt.id],false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
-    }}, o.emoji); cards.appendChild(c); });
+    }}, picEl(o)); cards.appendChild(c); });
     stage(
       h('div',{class:'hint-kana'},(intro?'✨ ':'')+'Listen and find'),
       h('div',{class:'gloss small'}, pt.en),
@@ -1427,11 +1435,11 @@ function actPatternBlock(p,duePat){
       if(answered&&o.key!==target.key) return;
       if(o.key===target.key){ if(!answered){answered=true;record(PAT[pt.id],true);} c.classList.add('correct'); Audio2.speak(cleanSpeak(sent.kana)); feedbackToast(encourage()); setTimeout(cb,900); }
       else { if(!answered){answered=true;record(PAT[pt.id],false);} c.classList.add('wrong'); feedbackToast(retryWord()); setTimeout(()=>c.classList.remove('wrong'),450); }
-    }}, h('div',{style:'font-size:64px'},o.emoji), h('div',{class:'kana',style:'font-size:26px'},o.kana)); cards.appendChild(c); });
+    }}, h('div',{class:'bigpic',style:'font-size:64px'},picEl(o)), h('div',{class:'kana',style:'font-size:26px'},o.kana)); cards.appendChild(c); });
     stage(
       h('div',{class:'hint-kana'},'Which word fits?'),
       h('div',{class:'gloss small'}, pt.en),
-      h('div',{style:'font-size:80px'},target.emoji),
+      h('div',{class:'bigpic',style:'font-size:80px'},picEl(target)),
       h('div',{class:'big-kana',style:'font-size:clamp(40px,8vh,64px);color:var(--muted)'}, frameShown.replace('◯◯','＿＿')),
       cards
     );
@@ -1462,7 +1470,7 @@ function actPatternBlock(p,duePat){
     stage(
       h('div',{class:'hint-kana'},'Build the sentence!'),
       h('div',{class:'gloss small'}, pt.en),
-      h('div',{style:'font-size:70px'},target.emoji),
+      h('div',{class:'bigpic',style:'font-size:70px'},picEl(target)),
       slotRow, bank,
       h('button',{class:'btn ghost',style:'min-height:60px;font-size:22px',onclick:()=>{ placed=[]; Object.values(tileEls).forEach(b=>b.classList.remove('used')); renderSlots(); }},'🔁 Start over')
     );
@@ -1606,7 +1614,7 @@ function screenDashboard(p){
     return h('span',{class:'pill',style:on?'':'opacity:.45'}, (known?'✅ ':on?'🔓 ':'🔒 ')+pt.frameKana); });
   // next unlocks
   const nextUnlocks=[];
-  if(p.track==='B' && !hiraganaUnlocked(p)) nextUnlocks.push('Hiragana: day '+days+'/30 · '+kw+'/60 words');
+  if(!hiraganaUnlocked(p)) nextUnlocks.push('Hiragana: day '+days+'/30 · '+kw+'/60 words');
   DATA.patterns.forEach(pt=>{ if(!patternUnlocked(p,pt)){ let s=pt.frameKana+' — '+kw+'/'+pt.unlock.knownWords+' words'; if(pt.unlock.unitStarted&&!unitStarted(p,pt.unlock.unitStarted)) s+=' + start '+pt.unlock.unitStarted; nextUnlocks.push(s); } });
   // weekly family phrase (WITH romaji - parent only)
   const wk=Math.min(8,Math.max(1,Math.floor(days/7)+1));
@@ -1628,7 +1636,7 @@ function screenDashboard(p){
   const otherId = p.id==='A'?'B':'A'; const other=loadProfile(otherId);
   const sheet=h('div',{class:'sheet dash'},
     h('div',{class:'row',style:'justify-content:space-between'},
-      h('h2',{}, p.avatar+' '+(p.track==='A'?'Track A · age 5':'Track B · age 8')),
+      h('h2',{}, p.avatar+' Progress'),
       h('div',{},
         other? h('button',{class:'btn ghost',style:'min-height:44px;font-size:16px;margin-right:8px',onclick:()=>screenDashboard(other)}, other.avatar+' switch'):null,
         h('button',{class:'btn ghost',style:'min-height:44px;font-size:16px',onclick:()=>{ document.querySelector('.overlay').remove(); }},'✕ close'))
@@ -1642,8 +1650,8 @@ function screenDashboard(p){
     famCard,
     h('h3',{},'Known words by unit'),
     h('table',{}, unitRows),
-    p.track==='B'? h('div',{}, h('h3',{},'Hiragana '+(hiraganaUnlocked(p)?'(unlocked)':'(locked)')), kgrid):null,
-    p.track==='B'? h('div',{}, h('h3',{},'Patterns'), h('div',{class:'chips'},patRows)):null,
+    h('div',{}, h('h3',{},'Hiragana '+(hiraganaUnlocked(p)?'(unlocked)':'(locked)')), kgrid),
+    h('div',{}, h('h3',{},'Patterns'), h('div',{class:'chips'},patRows)),
     nextUnlocks.length? h('div',{}, h('h3',{},'Next unlocks'), h('ul',{style:'margin:0;padding-left:18px;font-size:14px;color:var(--muted)'}, nextUnlocks.map(s=>h('li',{style:'margin:3px 0'},s)))):null,
     h('h3',{},'Settings'),
     h('div',{class:'row',style:'justify-content:flex-start;gap:22px;flex-wrap:wrap'},
@@ -1684,7 +1692,7 @@ function importDialog(p){
       h('h3',{},'Import backup for '+p.id),
       ta,
       h('div',{class:'row',style:'justify-content:flex-start;margin-top:10px'},
-        h('button',{class:'btn primary',onclick:()=>{ try{ const obj=JSON.parse(ta.value); if(!obj||!obj.items){ alert('Not a valid backup.'); return; } obj.id=p.id; obj.track=p.track; obj.age=p.age; saveProfile(migrate(obj)); alert('Imported!'); ov.remove(); if(CUR&&CUR.id===p.id){ CUR=loadProfile(p.id); setAccent(CUR);} openDashboard(); }catch(err){ alert('Could not read that backup.'); } }},'Import'),
+        h('button',{class:'btn primary',onclick:()=>{ try{ const obj=JSON.parse(ta.value); if(!obj||!obj.items){ alert('Not a valid backup.'); return; } obj.id=p.id; saveProfile(migrate(obj)); alert('Imported!'); ov.remove(); if(CUR&&CUR.id===p.id){ CUR=loadProfile(p.id); setAccent(CUR);} openDashboard(); }catch(err){ alert('Could not read that backup.'); } }},'Import'),
         h('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel'))
     ));
   document.body.appendChild(ov);
